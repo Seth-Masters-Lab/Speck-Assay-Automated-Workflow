@@ -51,13 +51,13 @@ fcsImport <- function(path, clean, logTrans){
 
 ## 2D Gate
 
-gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plot){
+gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plot, kpop){
   setData <- gs_pop_get_data(gatingSet, parentPop)
   gate <- fsApply(setData, function(fr) openCyto::gate_flowclust_2d(
     fr,
     xChannel = xchannel,
     yChannel = ychannel,
-    plot = F,
+    K = kpop,
     quantile = quantile))
   
   gs_pop_add(gatingSet, gate, parent = parentPop, name = name)
@@ -71,13 +71,15 @@ gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plo
 
 ## 1D Gate
 
-gate1d <- function(gatingSet, parentPop, xchannel, range, name, plot, positive){
+gate1d <- function(gatingSet, parentPop, xchannel, range, name, plot, positive, smoothing, peaks){
   setData <- gs_pop_get_data(gatingSet)
   gate <- fsApply(setData, function(fr) openCyto::gate_mindensity(
     fr,
     channel = xchannel,
     gate_range = range,
-    positive = positive
+    positive = positive,
+    adjust = smoothing,
+    peaks = peaks
   ))
   gs_pop_add(gatingSet, gate, parent = parentPop, name = name)
   recompute(gatingSet)
@@ -90,7 +92,50 @@ gate1d <- function(gatingSet, parentPop, xchannel, range, name, plot, positive){
 
 ################################################################################
 
+## Export single cell data for marker of interest (eg. NLRP3) ##
 
+exportSingleCell <- function(speckPosGate, speckNegGate, ascGate, facsChannel){
+  
+  # Get cell info for speck populations
+  speckPosData <- gs_pop_get_data(gs, speckPosGate)
+  speckNegData <- gs_pop_get_data(gs, speckNegGate)
+  totalCellData <- gs_pop_get_data(gs, ascGate)
+  
+  # Export single cell data based on 
+  speckName <<- c()
+  speckPosRaw <<- c()
+  speckNegRaw <<- c()
+  speckAll <<- c()
+  
+  for(i in 1:length(speckPosData)){
+    # Export well names
+    temp <- pData(speckPosData[i])[,2]
+    speckName <- c(speckName, temp)
+    
+    # Export Speck positive population
+    temp <- exprs(speckPosData[[i]])
+    temp <- temp[,facsChannel]
+    temp <- list(temp)
+    speckPosRaw <<- c(speckPosRaw, temp)
+    
+    # Export speck negative population
+    temp <- exprs(speckNegData[[i]])
+    temp <- temp[,facsChannel]
+    temp <- list(temp)
+    speckNegRaw <<- c(speckNegRaw, temp)
+    
+    # Export all asc cells
+    temp <- exprs(totalCellData[[i]])
+    temp <- temp[,facsChannel]
+    temp <- list(temp)
+    speckAll <<- c(speckAll, temp)
+  }
+  cat("Exported: \n", "speckName \n", "speckPosRaw \n", "speckNegRaw \n", "speckAll", sep = "")
+}
+
+
+
+################################################################################
 
 ## Step Gating ##
 
