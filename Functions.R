@@ -13,7 +13,7 @@ library(writexl)
 
 
 
-## Import FCS files and perform cleanup if desired
+## Import FCS files and perform cleanup if desired ##
 
 fcsImport <- function(path, clean, logTrans){
   
@@ -44,6 +44,48 @@ fcsImport <- function(path, clean, logTrans){
     }
 }
 
+
+
+################################################################################
+
+
+## 2D Gate
+
+gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plot){
+  setData <- gs_pop_get_data(gatingSet, parentPop)
+  gate <- fsApply(setData, function(fr) openCyto::gate_flowclust_2d(
+    fr,
+    xChannel = xchannel,
+    yChannel = ychannel,
+    plot = F,
+    quantile = quantile))
+  
+  gs_pop_add(gatingSet, gate, parent = parentPop, name = name)
+  recompute(gatingSet)
+  if(plot == T){
+    print(ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}}, y = {{ychannel}})) + geom_hex(bins = 100) +
+      geom_gate(name))
+  }
+}
+
+
+## 1D Gate
+
+gate1d <- function(gatingSet, parentPop, xchannel, range, name, plot, positive){
+  setData <- gs_pop_get_data(gatingSet)
+  gate <- fsApply(setData, function(fr) openCyto::gate_mindensity(
+    fr,
+    channel = xchannel,
+    gate_range = range,
+    positive = positive
+  ))
+  gs_pop_add(gatingSet, gate, parent = parentPop, name = name)
+  recompute(gatingSet)
+  if(plot == T){
+    print(ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}})) + geom_density() +
+            geom_gate(name))
+  }
+}
 
 
 ################################################################################
