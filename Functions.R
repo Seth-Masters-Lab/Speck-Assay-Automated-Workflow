@@ -40,8 +40,8 @@ fcsImport <- function(path, clean, logTrans){
     
     trans <- estimateLogicle(fs[[1]], colnames(fs[,lower:upper]))
     fs <- transform(fs, trans)
-    return(fs)
-    }
+  }
+  return(fs)
 }
 
 
@@ -110,7 +110,7 @@ exportSingleCell <- function(speckPosGate, speckNegGate, ascGate, facsChannel){
   for(i in 1:length(speckPosData)){
     # Export well names
     temp <- pData(speckPosData[i])[,2]
-    speckName <- c(speckName, temp)
+    speckName <<- c(speckName, temp)
     
     # Export Speck positive population
     temp <- exprs(speckPosData[[i]])
@@ -162,6 +162,8 @@ stepBin <- function(index, stepLen, speckAll, speckPosRaw, speckNegRaw){
     speckPosCounts <<- c(speckPosCounts, posBinCount)
     speckNegCounts <<- c(speckNegCounts, negBinCount)
     binStart <- binStart + stepLen}
+  
+  return(data.frame(bins = bin, SpeckPos = speckPosCounts, SpeckNeg = speckNegCounts))
 }
 
 ################################################################################
