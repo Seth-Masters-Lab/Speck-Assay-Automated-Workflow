@@ -13,7 +13,7 @@ library(writexl)
 
 
 
-## Import FSC files and perform cleanup if desired
+## Import FCS files and perform cleanup if desired
 
 fcsImport <- function(path, clean, logTrans){
   
