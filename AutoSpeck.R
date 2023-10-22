@@ -26,10 +26,10 @@ gate1d(gatingSet = gs, parentPop = 'root', xchannel = 'FSC.A', name = 'debris',
        plot = F, positive = T, range = c(0,1e5), smoothing = 2, peaks = NULL)
 
 #Single cell gates
-gate1d(gs, 'debris', xchannel = 'SSC.W', range = c(0,5), name = 'single1', positive = F, plot = F, smoothing = 2, peaks = NULL)
+gate1d(gs, 'debris', xchannel = 'SSC.W', range = c(0,5), name = 'single1', positive = F, plot = T, smoothing = 2, peaks = NULL)
 
 gate2d(gs, 'single1', xchannel = 'FSC.A', ychannel = 'FSC.H', quantile = 0.95,
-       name = 'single2', plot = F, kpop = 1)
+       name = 'single2', plot = T, kpop = 1)
 
 # ASC Gate
 gate2d(gs, 'single2', xchannel = 'FSC.A', ychannel = 'V450.50.A', quantile = 0.95, name = 'asc', plot = F, kpop = 1)
@@ -49,7 +49,7 @@ exportSingleCell('speckPosGate', 'speckNegGate', 'asc', "B530.30.A")
 
 sec50 <- c()
 for(i in 1:length(speckName)){
-  binData <- stepBin(i, 0.05, speckAll, speckPosRaw, speckNegRaw)
+  binData <- stepBin(i, 0.01, speckAll, speckPosRaw, speckNegRaw)
   
   ggplot() +
     geom_line(data = binData, aes(x = bins, y = SpeckPos), col = "red") + 
