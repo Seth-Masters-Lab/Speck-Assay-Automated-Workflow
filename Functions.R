@@ -148,16 +148,19 @@ stepBin <- function(index, stepLen, speckAll, speckPosRaw, speckNegRaw){
   
   plotRange <- c(min(speckAll[[index]]), max(speckAll[[index]]))
   binStart <- plotRange[1]
-  binSize <- (plotRange[2] - plotRange[1]) / 4
+  binSize <- (plotRange[2] - plotRange[1]) / 3
   bin <<- c()
   speckPosCounts <<- c()
   speckNegCounts <<- c()
   binEnd <- 0
   
-  while(binEnd < plotRange[2]){
+  while(binEnd < plotRange[2] + 1){
     binEnd <- binStart + binSize
     posBinCount <- sum(speckPosRaw[[index]] >= binStart & speckPosRaw[[index]] <= binEnd)
     negBinCount <- sum(speckNegRaw[[index]] >= binStart & speckNegRaw[[index]] <= binEnd)
+    if(posBinCount+negBinCount < 100){
+      break
+    }
     bin <<- c(bin, binEnd)
     speckPosCounts <<- c(speckPosCounts, posBinCount)
     speckNegCounts <<- c(speckNegCounts, negBinCount)
