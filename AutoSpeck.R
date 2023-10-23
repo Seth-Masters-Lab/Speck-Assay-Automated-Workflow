@@ -11,7 +11,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-path <- 'Data/20230622_Nlrp3 library 12/P1'
+path <- 'Data/20230503_Nlrp3 library 1'
 
 
 fs <- fcsImport(path, T, T)
@@ -20,11 +20,11 @@ fs <- fcsImport(path, T, T)
 gs <- GatingSet(fs)
 
 # QA Step
-ggcyto(gs, subset = 'root', aes(x = 'FSC.A', y = 'SSC.A')) + geom_hex(bins = 100)
+ggcyto(gs[1], subset = 'root', aes(x = 'FSC.A', y = 'SSC.A')) + geom_hex(bins = 100)
 
 # Debris Gate
 gate1d(gatingSet = gs, parentPop = 'root', xchannel = 'FSC.A', name = 'debris',
-       plot = T, positive = T, range = c(0,1e5), smoothing = 2, peaks = NULL)
+       plot = F, positive = T, range = c(0,1e5), smoothing = 2, peaks = NULL)
 
 
 # ggcyto(gs[1], subset = 'debris', aes(x = 'SSC.W')) + geom_density() +
@@ -33,14 +33,14 @@ gate1d(gatingSet = gs, parentPop = 'root', xchannel = 'FSC.A', name = 'debris',
 
 #Single cell gates
 gate1d(gs, 'debris', xchannel = 'SSC.W', range = c(4,4.3), name = 'single1', 
-       positive = F, plot = T, smoothing = 2, peaks = NULL)
+       positive = F, plot = F, smoothing = 2, peaks = NULL)
 
 gate2d(gs, 'single1', xchannel = 'FSC.A', ychannel = 'FSC.H', quantile = 0.95,
-       name = 'single2', plot = T, kpop = 1)
+       name = 'single2', plot = F, kpop = 1)
 
 # ASC Gate
 gate2d(gs, 'single2', xchannel = 'FSC.A', ychannel = 'V450.50.A', 
-       quantile = 0.95, name = 'asc', plot = T, kpop = 1)
+       quantile = 0.95, name = 'asc', plot = F, kpop = 1)
 
 #Speck negative/positive gate
 gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.05), positive = T,
