@@ -59,6 +59,3 @@ for(i in 1:length(speckName)){
   print(ggplot(speck, aes(NLRP3, speckPositive)) + geom_line() + labs(title = speckName[[i]]))
   
 }
-
-#test
-
