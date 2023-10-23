@@ -11,7 +11,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-path <- 'Testing_NLRP3_library_12_sample_1A-H'
+path <- 'Data/20230622_Nlrp3 library 12/P1'
 
 
 fs <- fcsImport(path, T, T)
@@ -20,26 +20,33 @@ fs <- fcsImport(path, T, T)
 gs <- GatingSet(fs)
 
 # QA Step
-# ggcyto(gs, subset = 'root', aes(x = 'FSC.A', y = 'SSC.A')) + geom_hex(bins = 100)
+ggcyto(gs, subset = 'root', aes(x = 'FSC.A', y = 'SSC.A')) + geom_hex(bins = 100)
 
 # Debris Gate
 gate1d(gatingSet = gs, parentPop = 'root', xchannel = 'FSC.A', name = 'debris',
        plot = T, positive = T, range = c(0,1e5), smoothing = 2, peaks = NULL)
 
+
+# ggcyto(gs[1], subset = 'debris', aes(x = 'SSC.W')) + geom_density() +
+#     geom_gate('single1')
+
+
 #Single cell gates
-gate1d(gs, 'debris', xchannel = 'SSC.W', range = c(0,5), name = 'single1', positive = F, plot = T, smoothing = 2, peaks = NULL)
+gate1d(gs, 'debris', xchannel = 'SSC.W', range = c(4,4.3), name = 'single1', 
+       positive = F, plot = T, smoothing = 2, peaks = NULL)
 
 gate2d(gs, 'single1', xchannel = 'FSC.A', ychannel = 'FSC.H', quantile = 0.95,
        name = 'single2', plot = T, kpop = 1)
 
 # ASC Gate
-gate2d(gs, 'single2', xchannel = 'FSC.A', ychannel = 'V450.50.A', quantile = 0.95, name = 'asc', plot = F, kpop = 1)
+gate2d(gs, 'single2', xchannel = 'FSC.A', ychannel = 'V450.50.A', 
+       quantile = 0.95, name = 'asc', plot = T, kpop = 1)
 
 #Speck negative/positive gate
 gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.05), positive = T,
-       name = 'speckNegGate', plot = T, smoothing = 1, peaks = NULL)
+       name = 'speckNegGate', plot = F, smoothing = 1, peaks = NULL)
 gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.05), positive = F,
-       name = 'speckPosGate', plot = T, smoothing = 1, peaks = NULL)
+       name = 'speckPosGate', plot = F, smoothing = 1, peaks = NULL)
 
 ggcyto(gs, subset = 'asc', aes(x = 'V450.50.W', y = 'SSC.A')) + geom_hex(bins = 100) + geom_gate()
 
@@ -115,7 +122,11 @@ results <- data.frame(well = speckName,
 
 print(ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
 
-ggsave(filename = paste(path, 'results.png', sep = "_"), device = 'png',
+
+
+# Exports the raw data as an excel sheet along with the graph of relative ec50
+ggsave(filename = paste(sub('Data/', x = path, replacement = ""), 'results.png', sep = "_"), device = 'png',
+       path = 'Results',
        limitsize = F,
        width = 3840,
        height = 2160,
@@ -123,4 +134,5 @@ ggsave(filename = paste(path, 'results.png', sep = "_"), device = 'png',
        scale = 2,
        plot = ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
 
-write_xlsx(results, path = paste(path,"results.xlsx", sep = "_"))
+write_xlsx(results, path = paste(paste0('Results/',sub('Data/', x = path, replacement = "")),"results.xlsx", sep = "_"))
+
