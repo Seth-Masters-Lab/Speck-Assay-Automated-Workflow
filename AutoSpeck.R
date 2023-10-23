@@ -49,13 +49,77 @@ exportSingleCell('speckPosGate', 'speckNegGate', 'asc', "B530.30.A")
 
 sec50 <- c()
 for(i in 1:length(speckName)){
+  
+  # Step-binning for data
   binData <- stepBin(i, 0.01, speckAll, speckPosRaw, speckNegRaw)
   
+  #Distributions of speck- and speck+ populations
   ggplot() +
     geom_line(data = binData, aes(x = bins, y = SpeckPos), col = "red") + 
     geom_line(data = binData, aes(x = bins, y = SpeckNeg), col = "blue")
   
+  # Calculate proportions of speck+ cells
   speck <- data.frame(NLRP3 = binData$bins, speckPositive = binData$SpeckPos/(binData$SpeckPos + binData$SpeckNeg))
+  
   print(ggplot(speck, aes(NLRP3, speckPositive)) + geom_line() + labs(title = speckName[[i]]))
   
+  
+  
+  # Curve fitting function - NEEDS MORE WORK
+  curve_fit <- drm(
+    formula = speck$speckPositive ~ speck$NLRP3,
+    data = speck,
+    logDose = 10,
+    fct = LL.4(names = c("hill", "min_value", "max_value", "ec_50")))
+  
+  ec50 <- curve_fit$coefficients['ec_50:(Intercept)']
+  ec50 <- ec50[[1]]
+  
+  # Filters out ec50 values which are greater than the range of the curve
+  # Only relevant for small noidy curves
+  if(10^(max(speck$NLRP3)) < ec50 | ec50 < 1){
+    ec50 <- `is.na<-`(ec50)
+    cat("Sample", speckName[i], "ec50 out of bounds \n", sep = " ")}
+  
+  sec50 <- c(sec50, ec50)
+  
 }
+
+speck50 <- 1 - (sec50/sec50[1])
+
+
+# Filter out samples with too low of a speck positive population
+# Found that ec50 calculation on these samples was wildly inaccurate due to small
+# y range of speck proportion
+
+totalSpeck <- c()
+for(i in 1:length(speckName)){
+  speckpct <- length(speckPosRaw[[i]]) / length(speckAll[[i]]) * 100
+  totalSpeck <- c(totalSpeck, speckpct)
+  if(speckpct < 5){
+    cat("Sample ", speckName[i], " speckpos is too low: ", 
+        speckpct, "% \n",
+        sep = "")
+    sec50[i] = `is.na<-`(sec50[i])
+    speck50[i] = `is.na<-`(speck50[i])
+  }
+}
+
+
+
+results <- data.frame(well = speckName, 
+                      SpeckTotal = totalSpeck, 
+                      ec50 = sec50, 
+                      speck50 = speck50)
+
+print(ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
+
+ggsave(filename = paste(path, 'results.png', sep = "_"), device = 'png',
+       limitsize = F,
+       width = 3840,
+       height = 2160,
+       units = 'px',
+       scale = 2,
+       plot = ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
+
+write_xlsx(results, path = paste(path,"results.xlsx", sep = "_"))
