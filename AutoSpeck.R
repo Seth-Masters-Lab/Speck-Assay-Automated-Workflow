@@ -3,7 +3,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-path <- 'Data/20230622_Nlrp3 library 12/P1'
+path <- 'Data/Testing_NLRP3_library_12_sample_1A-H'
 
 
 fs <- fcsImport(path, T, T)
@@ -52,23 +52,27 @@ for(i in 1:length(speckName)){
   binData <- stepBin(i, 0.01, speckAll, speckPosRaw, speckNegRaw)
   
   #Distributions of speck- and speck+ populations
-  ggplot() +
-    geom_line(data = binData, aes(x = bins, y = SpeckPos), col = "red") +
-    geom_line(data = binData, aes(x = bins, y = SpeckNeg), col = "blue")
+  # ggplot() +
+  #   geom_line(data = binData, aes(x = bins, y = SpeckPos), col = "red") +
+  #   geom_line(data = binData, aes(x = bins, y = SpeckNeg), col = "blue")
 
   # Calculate proportions of speck+ cells
   speck <- data.frame(NLRP3 = binData$bins, speckPositive = binData$SpeckPos/(binData$SpeckPos + binData$SpeckNeg))
   
-  print(ggplot(speck, aes(NLRP3, speckPositive)) + geom_line() + labs(title = speckName[[i]]))
+  # print(ggplot(speck, aes(NLRP3, speckPositive)) + geom_line() + labs(title = speckName[[i]]))
   
   
   
   # Curve fitting function - NEEDS MORE WORK
+
+  #Experimenting adding limits for max_value and using asymetric model - W2.4
+  
   curve_fit <- drm(
     formula = speck$speckPositive ~ speck$NLRP3,
     data = speck,
-    logDose = 10,
-    fct = W2.4(names = c("hill", "min_value", "max_value", "ec_50")))
+    # logDose = 10,
+    upperl = c(+Inf, +Inf, 1, +Inf, +Inf),
+    fct = LL2.5(names = c("hill", "min_value", "max_value", "ec_50", 'f')))
   
   ec50 <- curve_fit$coefficients['ec_50:(Intercept)']
   ec50 <- ec50[[1]]
