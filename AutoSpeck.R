@@ -30,7 +30,7 @@ gate2d(gs, 'single1', xchannel = 'FSC.A', ychannel = 'FSC.H', quantile = 0.95,
 
 # ASC Gate
 gate2d(gs, 'single2', xchannel = 'FSC.A', ychannel = 'V450.50.A', 
-       quantile = 0.95, name = 'asc', plot = T, kpop = 1)
+       quantile = 0.95, name = 'asc', plot = F, kpop = 1)
 
 #Speck negative/positive gate
 gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.05), positive = T,
@@ -53,13 +53,13 @@ for(i in 1:length(speckName)){
   
   #Distributions of speck- and speck+ populations
   ggplot() +
-    geom_line(data = binData, aes(x = bins, y = SpeckPos), col = "red") + 
+    geom_line(data = binData, aes(x = bins, y = SpeckPos), col = "red") +
     geom_line(data = binData, aes(x = bins, y = SpeckNeg), col = "blue")
-  
+
   # Calculate proportions of speck+ cells
   speck <- data.frame(NLRP3 = binData$bins, speckPositive = binData$SpeckPos/(binData$SpeckPos + binData$SpeckNeg))
   
-  # print(ggplot(speck, aes(NLRP3, speckPositive)) + geom_line() + labs(title = speckName[[i]]))
+  print(ggplot(speck, aes(NLRP3, speckPositive)) + geom_line() + labs(title = speckName[[i]]))
   
   
   
@@ -68,7 +68,7 @@ for(i in 1:length(speckName)){
     formula = speck$speckPositive ~ speck$NLRP3,
     data = speck,
     logDose = 10,
-    fct = LL.4(names = c("hill", "min_value", "max_value", "ec_50")))
+    fct = W2.4(names = c("hill", "min_value", "max_value", "ec_50")))
   
   ec50 <- curve_fit$coefficients['ec_50:(Intercept)']
   ec50 <- ec50[[1]]
@@ -81,6 +81,7 @@ for(i in 1:length(speckName)){
   
   sec50 <- c(sec50, ec50)
   
+  plot(curve_fit, main = speckName[[i]])
 }
 
 speck50 <- 1 - (sec50/sec50[1])
