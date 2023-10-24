@@ -158,7 +158,7 @@ stepBin <- function(index, stepLen, speckAll, speckPosRaw, speckNegRaw){
     binEnd <- binStart + binSize
     posBinCount <- sum(speckPosRaw[[index]] >= binStart & speckPosRaw[[index]] <= binEnd)
     negBinCount <- sum(speckNegRaw[[index]] >= binStart & speckNegRaw[[index]] <= binEnd)
-    if(posBinCount+negBinCount < 100){
+    if(posBinCount+negBinCount < 25){
       break
     }
     bin <<- c(bin, binEnd)

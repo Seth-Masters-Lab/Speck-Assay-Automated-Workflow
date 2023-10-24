@@ -1,17 +1,9 @@
-library(flowCore)
-library(flowAI)
-library(flowWorkspace)
-library(openCyto)
-library(ggcyto)
-library(gridExtra)
-library(drc)
-library(writexl)
 
 rm(list=ls())
 
 source('Functions.R')
 
-path <- 'Data/20230503_Nlrp3 library 1'
+path <- 'Data/20230622_Nlrp3 library 12/P1'
 
 
 fs <- fcsImport(path, T, T)
@@ -20,27 +12,25 @@ fs <- fcsImport(path, T, T)
 gs <- GatingSet(fs)
 
 # QA Step
-ggcyto(gs[1], subset = 'root', aes(x = 'FSC.A', y = 'SSC.A')) + geom_hex(bins = 100)
+# ggcyto(gs, subset = 'root', aes(x = 'FSC.A', y = 'SSC.A')) + geom_hex(bins = 200)
 
 # Debris Gate
 gate1d(gatingSet = gs, parentPop = 'root', xchannel = 'FSC.A', name = 'debris',
-       plot = F, positive = T, range = c(0,1e5), smoothing = 2, peaks = NULL)
-
-
-# ggcyto(gs[1], subset = 'debris', aes(x = 'SSC.W')) + geom_density() +
-#     geom_gate('single1')
+       plot = F, positive = T, range = c(0.1e5,1e5), smoothing = 2, peaks = NULL)
 
 
 #Single cell gates
-gate1d(gs, 'debris', xchannel = 'SSC.W', range = c(4,4.3), name = 'single1', 
-       positive = F, plot = F, smoothing = 2, peaks = NULL)
+
+gate2d(gs, 'debris', xchannel = 'SSC.W', ychannel = 'SSC.A', quantile = 0.95,
+       name = 'single1', plot = F, kpop = 2)
 
 gate2d(gs, 'single1', xchannel = 'FSC.A', ychannel = 'FSC.H', quantile = 0.95,
        name = 'single2', plot = F, kpop = 1)
 
+
 # ASC Gate
 gate2d(gs, 'single2', xchannel = 'FSC.A', ychannel = 'V450.50.A', 
-       quantile = 0.95, name = 'asc', plot = F, kpop = 1)
+       quantile = 0.95, name = 'asc', plot = T, kpop = 1)
 
 #Speck negative/positive gate
 gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.05), positive = T,
@@ -48,7 +38,7 @@ gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.05), positive = T,
 gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.05), positive = F,
        name = 'speckPosGate', plot = F, smoothing = 1, peaks = NULL)
 
-ggcyto(gs, subset = 'asc', aes(x = 'V450.50.W', y = 'SSC.A')) + geom_hex(bins = 100) + geom_gate()
+# ggcyto(gs, subset = 'asc', aes(x = 'V450.50.W', y = 'SSC.A')) + geom_hex(bins = 100) + geom_gate()
 
 
 # Get cell info for speck populations
@@ -69,7 +59,7 @@ for(i in 1:length(speckName)){
   # Calculate proportions of speck+ cells
   speck <- data.frame(NLRP3 = binData$bins, speckPositive = binData$SpeckPos/(binData$SpeckPos + binData$SpeckNeg))
   
-  print(ggplot(speck, aes(NLRP3, speckPositive)) + geom_line() + labs(title = speckName[[i]]))
+  # print(ggplot(speck, aes(NLRP3, speckPositive)) + geom_line() + labs(title = speckName[[i]]))
   
   
   
