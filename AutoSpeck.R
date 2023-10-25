@@ -38,9 +38,6 @@ gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.05), positive = T,
 gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.05), positive = F,
        name = 'speckPosGate', plot = F, smoothing = 1, peaks = NULL)
 
-ggcyto(gs[15], subset = 'debris', aes(x = 'FSC.A', y = 'FSC.H')) + geom_hex(bins = 100) + geom_gate()
-autoplot(gs[15], bins = 200, 'asc')
-
 
 # Get cell info for speck populations
 exportSingleCell('speckPosGate', 'speckNegGate', 'asc', "B530.30.A")
@@ -64,17 +61,7 @@ for(i in 1:length(speckName)){
   
   
   
-  # Curve fitting function - NEEDS MORE WORK
-
-  #Experimenting adding limits for max_value and using asymmetric model - W2.4
-  
-  # curve_fit <- drm(
-  #   formula = speck$speckPositive ~ speck$NLRP3,
-  #   data = speck,
-  #   logDose = 10,
-  #   upperl = c(+Inf, +Inf, 1, +Inf, +Inf),
-  #   fct = W2.4(names = c("hill", "min_value", "max_value", "ec_50", 'f')))
-  
+  # Curve fitting function
   curve_fit <- drda::drda(
     formula = speck$speckPositive~speck$NLRP3,
     data = speck,
@@ -83,15 +70,12 @@ for(i in 1:length(speckName)){
     mean_function = 'l4'
   )
 
-  
-  
-  # mselect(curve_fit, list(LL.4(), W2.4(), W1.3(), W1.4(), baro5()))
-  
+
   ec50 <- curve_fit$coefficients['phi']
   ec50 <- ec50[[1]]
   
   # Filters out ec50 values which are greater than the range of the curve
-  # Only relevant for small noidy curves
+  # Only relevant for small noisy curves
   # if(max(speck$NLRP3) < ec50){
   #   ec50 <- `is.na<-`(ec50)
   #   cat("Sample", speckName[i], "ec50 out of bounds \n", sep = " ")}
