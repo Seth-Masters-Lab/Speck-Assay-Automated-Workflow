@@ -3,7 +3,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-path <- 'Data/Testing_NLRP3_library_12_sample_1A-H'
+path <- 'Data/20230622_Nlrp3 library 11/P1'
 
 
 fs <- fcsImport(path, T, T)
@@ -12,7 +12,7 @@ fs <- fcsImport(path, T, T)
 gs <- GatingSet(fs)
 
 # QA Step
-# ggcyto(gs, subset = 'root', aes(x = 'FSC.A', y = 'SSC.A')) + geom_hex(bins = 200)
+ggcyto(gs, subset = 'root', aes(x = 'FSC.A', y = 'SSC.A')) + geom_hex(bins = 200)
 
 # Debris Gate
 gate1d(gatingSet = gs, parentPop = 'root', xchannel = 'FSC.A', name = 'debris',
@@ -38,7 +38,8 @@ gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.05), positive = T,
 gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.05), positive = F,
        name = 'speckPosGate', plot = F, smoothing = 1, peaks = NULL)
 
-# ggcyto(gs, subset = 'asc', aes(x = 'V450.50.W', y = 'SSC.A')) + geom_hex(bins = 100) + geom_gate()
+ggcyto(gs[15], subset = 'debris', aes(x = 'FSC.A', y = 'FSC.H')) + geom_hex(bins = 100) + geom_gate()
+autoplot(gs[15], bins = 200, 'asc')
 
 
 # Get cell info for speck populations
@@ -52,9 +53,9 @@ for(i in 1:length(speckName)){
   binData <- stepBin(i, 0.01, speckAll, speckPosRaw, speckNegRaw)
   
   #Distributions of speck- and speck+ populations
-  # ggplot() +
-  #   geom_line(data = binData, aes(x = bins, y = SpeckPos), col = "red") +
-  #   geom_line(data = binData, aes(x = bins, y = SpeckNeg), col = "blue")
+  ggplot() +
+    geom_line(data = binData, aes(x = bins, y = SpeckPos), col = "red") +
+    geom_line(data = binData, aes(x = bins, y = SpeckNeg), col = "blue")
 
   # Calculate proportions of speck+ cells
   speck <- data.frame(NLRP3 = binData$bins, speckPositive = binData$SpeckPos/(binData$SpeckPos + binData$SpeckNeg))
@@ -65,24 +66,38 @@ for(i in 1:length(speckName)){
   
   # Curve fitting function - NEEDS MORE WORK
 
-  #Experimenting adding limits for max_value and using asymetric model - W2.4
+  #Experimenting adding limits for max_value and using asymmetric model - W2.4
   
-  curve_fit <- drm(
-    formula = speck$speckPositive ~ speck$NLRP3,
+  # curve_fit <- drm(
+  #   formula = speck$speckPositive ~ speck$NLRP3,
+  #   data = speck,
+  #   logDose = 10,
+  #   upperl = c(+Inf, +Inf, 1, +Inf, +Inf),
+  #   fct = W2.4(names = c("hill", "min_value", "max_value", "ec_50", 'f')))
+  
+  curve_fit <- drda::drda(
+    formula = speck$speckPositive~speck$NLRP3,
     data = speck,
-    # logDose = 10,
-    upperl = c(+Inf, +Inf, 1, +Inf, +Inf),
-    fct = LL2.5(names = c("hill", "min_value", "max_value", "ec_50", 'f')))
+    lower_bound = c(-Inf, -Inf, -Inf, 0),
+    upper_bound = c(+Inf, 1, +Inf, +Inf),
+    mean_function = 'l4'
+  )
+
   
-  ec50 <- curve_fit$coefficients['ec_50:(Intercept)']
+  
+  # mselect(curve_fit, list(LL.4(), W2.4(), W1.3(), W1.4(), baro5()))
+  
+  ec50 <- curve_fit$coefficients['phi']
   ec50 <- ec50[[1]]
   
   # Filters out ec50 values which are greater than the range of the curve
   # Only relevant for small noidy curves
-  if(10^(max(speck$NLRP3)) < ec50 | ec50 < 1){
-    ec50 <- `is.na<-`(ec50)
-    cat("Sample", speckName[i], "ec50 out of bounds \n", sep = " ")}
+  # if(max(speck$NLRP3) < ec50){
+  #   ec50 <- `is.na<-`(ec50)
+  #   cat("Sample", speckName[i], "ec50 out of bounds \n", sep = " ")}
   
+  
+  # ec50 <- 10^ec50
   sec50 <- c(sec50, ec50)
   
   plot(curve_fit, main = speckName[[i]])
@@ -99,8 +114,8 @@ totalSpeck <- c()
 for(i in 1:length(speckName)){
   speckpct <- length(speckPosRaw[[i]]) / length(speckAll[[i]]) * 100
   totalSpeck <- c(totalSpeck, speckpct)
-  if(speckpct < 5){
-    cat("Sample ", speckName[i], " speckpos is too low: ", 
+  if(speckpct < 0){ #Changed to zero to include low speck populations for now
+    cat("Sample ", speckName[i], " speckpos is too low: ",
         speckpct, "% \n",
         sep = "")
     sec50[i] = `is.na<-`(sec50[i])
