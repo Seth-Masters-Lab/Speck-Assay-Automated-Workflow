@@ -76,10 +76,10 @@ for(i in 1:length(speckName)){
   
   # Filters out ec50 values which are greater than the range of the curve
   # Only relevant for small noisy curves
-  # if(max(speck$NLRP3) < ec50){
-  #   ec50 <- `is.na<-`(ec50)
-  #   cat("Sample", speckName[i], "ec50 out of bounds \n", sep = " ")}
-  
+  if(max(speck$NLRP3) < ec50){
+    ec50 <- `is.na<-`(ec50)
+    cat("Sample", speckName[i], "ec50 out of bounds \n", sep = " ")}
+
   
   # ec50 <- 10^ec50
   sec50 <- c(sec50, ec50)
