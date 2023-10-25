@@ -41,9 +41,10 @@ fcsImport <- function(path, clean, logTrans){
     trans <- estimateLogicle(fs[[1]], colnames(fs[,lower:upper]))
     fs <- transform(fs, trans)
   }
+  resultDir <<- sub("Data", 'Results', path)
+  dir.create(sub("Data", 'Results', path), recursive = T)
   return(fs)
 }
-
 
 
 ################################################################################
@@ -51,13 +52,17 @@ fcsImport <- function(path, clean, logTrans){
 
 ## 2D Gate
 
-gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plot, kpop){
+gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plot, kpop, save, target){
+  if(missing(target)){
+    target = NULL
+  }
   setData <- gs_pop_get_data(gatingSet, parentPop)
   gate <- fsApply(setData, function(fr) openCyto::gate_flowclust_2d(
     fr,
     xChannel = xchannel,
     yChannel = ychannel,
     K = kpop,
+    target = target,
     quantile = quantile))
   
   gs_pop_add(gatingSet, gate, parent = parentPop, name = name)
@@ -66,12 +71,23 @@ gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plo
     print(ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}}, y = {{ychannel}})) + geom_hex(bins = 100) +
       geom_gate(name))
   }
+  if(save == T){
+    ggsave(filename = paste0(name, '.png'), device = 'png',
+           path = resultDir,
+           limitsize = F,
+           width = 3840,
+           height = 2160,
+           units = 'px',
+           scale = 2,
+           plot = ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}}, y = {{ychannel}})) + geom_hex(bins = 200) +
+             geom_gate(name))
+  }
 }
 
 
 ## 1D Gate
 
-gate1d <- function(gatingSet, parentPop, xchannel, range, name, plot, positive, smoothing, peaks){
+gate1d <- function(gatingSet, parentPop, xchannel, range, name, plot, positive, smoothing, peaks, save){
   setData <- gs_pop_get_data(gatingSet)
   gate <- fsApply(setData, function(fr) openCyto::gate_mindensity(
     fr,
@@ -86,6 +102,17 @@ gate1d <- function(gatingSet, parentPop, xchannel, range, name, plot, positive, 
   if(plot == T){
     print(ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}})) + geom_density() +
             geom_gate(name))
+  }
+  if(save == T){
+    ggsave(filename = paste0(name, '.png'), device = 'png',
+           path = resultDir,
+           limitsize = F,
+           width = 3840,
+           height = 2160,
+           units = 'px',
+           scale = 2,
+           plot = ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}})) + geom_density() +
+             geom_gate(name))
   }
 }
 
@@ -154,7 +181,7 @@ stepBin <- function(index, stepLen, speckAll, speckPosRaw, speckNegRaw){
   speckNegCounts <<- c()
   binEnd <- 0
   
-  while(binEnd < plotRange[2] + 1){
+  while(binEnd < plotRange[2]){
     binEnd <- binStart + binSize
     posBinCount <- sum(speckPosRaw[[index]] >= binStart & speckPosRaw[[index]] <= binEnd)
     negBinCount <- sum(speckNegRaw[[index]] >= binStart & speckNegRaw[[index]] <= binEnd)
