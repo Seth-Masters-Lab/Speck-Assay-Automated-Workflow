@@ -3,7 +3,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-path <- 'Data/20230507_Nlrp3 library 4/P3'
+path <- 'Data/20230622_Nlrp3 library 12/P2 wo cold'
 
 
 fs <- fcsImport(path, T, T)
@@ -42,9 +42,9 @@ gate2d(gs, 'single2', xchannel = 'FSC.A', ychannel = 'V450.50.A',
        quantile = 0.95, name = 'asc', plot = F, kpop = 1, save = T)
 
 #Speck negative/positive gate
-gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.05), positive = T,
+gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.02), positive = T,
        name = 'speckNegGate', plot = F, smoothing = 1, peaks = NULL, save = T)
-gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.05), positive = F,
+gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.02), positive = F,
        name = 'speckPosGate', plot = F, smoothing = 1, peaks = NULL, save = T)
 
 
@@ -141,3 +141,4 @@ ggsave(filename = 'graph.png', device = 'png',
 
 write_xlsx(results, path = paste0(resultDir,"_raw_data.xlsx"))
 
+print('Done!')
