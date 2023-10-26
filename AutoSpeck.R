@@ -3,7 +3,8 @@ rm(list=ls())
 
 source('Functions.R')
 
-path <- 'Data/20230622_Nlrp3 library 12/P2 wo cold'
+
+path <- 'Data/Testing_NLRP3_library_12_sample_1A-H'
 
 
 fs <- fcsImport(path, T, T)
@@ -51,6 +52,14 @@ gate1d(gs, 'asc', xchannel = 'V450.50.W', range = c(3.9, 4.02), positive = F,
 # Get cell info for speck populations
 exportSingleCell('speckPosGate', 'speckNegGate', 'asc', "B530.30.A")
 
+# Mean of NLRP3 for each channel to evaluate overall expression level
+nlrp3_means <- c()
+for(i in 1:length(speckName)){
+  sampleMean <- gm_mean(speckAll[[i]])
+  nlrp3_means <- c(nlrp3_means, sampleMean)
+}
+
+# ggcyto(gs, subset = 'asc', aes(x = "B530.30.A")) + geom_density()
 
 sec50 <- c()
 for(i in 1:length(speckName)){
@@ -66,7 +75,7 @@ for(i in 1:length(speckName)){
   # Calculate proportions of speck+ cells
   speck <- data.frame(NLRP3 = binData$bins, speckPositive = binData$SpeckPos/(binData$SpeckPos + binData$SpeckNeg))
   
-  # print(ggplot(speck, aes(NLRP3, speckPositive)) + geom_line() + labs(title = speckName[[i]]))
+  ggplot(speck, aes(NLRP3, speckPositive)) + geom_line() + labs(title = speckName[[i]])
   
   
   
@@ -119,9 +128,10 @@ for(i in 1:length(speckName)){
 
 
 results <- data.frame(well = speckName, 
-                      SpeckTotal = totalSpeck, 
+                      Speck_Total = totalSpeck,
+                      Geometric_Mean_NLRP3 = nlrp3_means,
                       ec50 = sec50, 
-                      speck50 = speck50)
+                      asc50 = speck50)
 
 # print(ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
 

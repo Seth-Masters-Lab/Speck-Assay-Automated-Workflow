@@ -198,4 +198,7 @@ stepBin <- function(index, stepLen, speckAll, speckPosRaw, speckNegRaw){
 
 ################################################################################
 
-
+## Geometric Mean ##
+gm_mean = function(x, na.rm=TRUE){
+  exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
+}
