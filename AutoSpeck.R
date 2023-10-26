@@ -4,7 +4,7 @@ rm(list=ls())
 source('Functions.R')
 
 
-path <- 'Data/Testing_NLRP3_library_12_sample_1A-H'
+path <- 'Data/ASC50 calculation/20230622_Nlrp3 library 12/P1'
 
 
 fs <- fcsImport(path, T, T)
@@ -149,6 +149,6 @@ ggsave(filename = 'graph.png', device = 'png',
        scale = 2,
        plot = ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
 
-write_xlsx(results, path = paste0(resultDir,"_raw_data.xlsx"))
+write_xlsx(results, path = paste0(resultDir,"/raw_data.xlsx"))
 
 print('Done!')
