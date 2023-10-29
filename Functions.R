@@ -57,6 +57,7 @@ gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plo
     target = NULL
   }
   setData <- gs_pop_get_data(gatingSet, parentPop)
+  
   gate <- fsApply(setData, function(fr) openCyto::gate_flowclust_2d(
     fr,
     xChannel = xchannel,
@@ -64,12 +65,44 @@ gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plo
     K = kpop,
     target = target,
     quantile = quantile))
-  
   gs_pop_add(gatingSet, gate, parent = parentPop, name = name)
   recompute(gatingSet)
   if(plot == T){
     print(ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}}, y = {{ychannel}})) + geom_hex(bins = 100) +
       geom_gate(name))
+  }
+  if(save == T){
+    ggsave(filename = paste0(name, '.png'), device = 'png',
+           path = resultDir,
+           limitsize = F,
+           width = 3840,
+           height = 2160,
+           units = 'px',
+           scale = 2,
+           plot = ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}}, y = {{ychannel}})) + geom_hex(bins = 200) +
+             geom_gate(name))
+  }
+}
+
+
+## 2D Gate control
+
+gate2dc <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plot, kpop, save, target, controlSample){
+  if(missing(target)){
+    target = NULL
+  }
+  fr <- gh_pop_get_data(gs[[controlSample]], parentPop, returnType = 'flowFrame')
+  gate <- openCyto::gate_flowclust_2d(fr,
+                                     xChannel = xchannel,
+                                     yChannel = ychannel,
+                                     K = kpop,
+                                     target = target,
+                                     quantile = quantile)
+  gs_pop_add(gatingSet, gate, parent = parentPop, name = name)
+  recompute(gatingSet)
+  if(plot == T){
+    print(ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}}, y = {{ychannel}})) + geom_hex(bins = 100) +
+            geom_gate(name))
   }
   if(save == T){
     ggsave(filename = paste0(name, '.png'), device = 'png',
@@ -115,6 +148,37 @@ gate1d <- function(gatingSet, parentPop, xchannel, range, name, plot, positive, 
              geom_gate(name))
   }
 }
+
+## 1D Gate control
+
+gate1dc <- function(gatingSet, parentPop, xchannel, range, name, plot, positive, smoothing, peaks, save, controlSample){
+  fr <- gh_pop_get_data(gs[[controlSample]], parentPop, returnType = 'flowFrame')
+  gate <- openCyto:::.mindensity(fr, 
+                                 channels = xchannel,
+                                 gate_range = range,
+                                 positive = positive,
+                                 adjust = smoothing,
+                                 peaks = peaks)
+  gs_pop_add(gatingSet, gate, parent = parentPop, name = name)
+  recompute(gatingSet)
+  if(plot == T){
+    print(ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}})) + geom_density() +
+            geom_gate(name))
+  }
+  if(save == T){
+    ggsave(filename = paste0(name, '.png'), device = 'png',
+           path = resultDir,
+           limitsize = F,
+           width = 3840,
+           height = 2160,
+           units = 'px',
+           scale = 2,
+           plot = ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}})) + geom_density() +
+             geom_gate(name))
+  }
+}
+
+
 
 
 ################################################################################
