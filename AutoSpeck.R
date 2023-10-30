@@ -4,7 +4,7 @@ rm(list=ls())
 source('Functions.R')
 
 
-path <- 'Data/ASC50 calculation/20230608_Nlrp3 library 8/P5+Nig'
+path <- 'Data/ASC50 calculation/20230809_Nlrp3 library13/P3+MCC950'
 
 
 fs <- fcsImport(path, T, T)
@@ -143,7 +143,7 @@ for(i in 1:length(speckName)){
     }
 }
 
-speck50 <- 1 - (sec50/sec50[1])
+speck50 <- 1 - (sec50/sec50[gatingControl])
 
 
 # Filter out samples with too low of a speck positive population
