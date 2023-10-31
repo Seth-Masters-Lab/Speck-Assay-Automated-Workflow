@@ -4,7 +4,7 @@ rm(list=ls())
 source('Functions.R')
 
 
-path <- 'Data/ASC50 calculation/20230809_Nlrp3 library13/P3+MCC950'
+path <- 'Data/Testing_NLRP3_library_12_sample_1A-H'
 
 
 fs <- fcsImport(path, T, T)
@@ -21,8 +21,8 @@ ggcyto(gs, subset = 'root', aes(x = 'FSC.A', y = 'SSC.A')) + geom_hex(bins = 200
 ggsave(filename = paste0('total', '.png'), device = 'png',
        path = resultDir,
        limitsize = F,
-       width = 3840,
-       height = 2160,
+       width = 1920,
+       height = 1080,
        units = 'px',
        scale = 2,
        plot = ggcyto(gs, subset = 'root', aes(x = 'FSC.A', y = 'SSC.A')) + geom_hex(bins = 200))
@@ -41,21 +41,22 @@ gate2dc(gs, 'single1', xchannel = 'FSC.A', ychannel = 'FSC.H', quantile = 0.95,
 
 
 # ASC Gate
-gate2dc(gs, 'single2', xchannel = 'FSC.A', ychannel = 'V450.50.A', 
-       quantile = 0.95, name = 'asc', plot = F, kpop = 1, save = T,
-       controlSample = gatingControl)
+# gate2dc(gs, 'single2', xchannel = 'FSC.A', ychannel = 'V450.50.A', 
+#        quantile = 0.95, name = 'asc', plot = F, kpop = 1, save = T,
+#        controlSample = gatingControl)
+
 
 #Speck negative/positive gate
-gate1dc(gs, 'asc', xchannel = 'V450.50.W', range = c(3.8, 4.02), positive = T,
+gate1dc(gs, 'single2', xchannel = 'V450.50.W', range = c(3.8, 4.02), positive = T,
        name = 'speckNegGate', plot = F, smoothing = 1.5, peaks = NULL, save = T,
        controlSample = gatingControl)
-gate1dc(gs, 'asc', xchannel = 'V450.50.W', range = c(3.8, 4.02), positive = F,
+gate1dc(gs, 'single2', xchannel = 'V450.50.W', range = c(3.8, 4.02), positive = F,
        name = 'speckPosGate', plot = F, smoothing = 1.5, peaks = NULL, save = T,
        controlSample = gatingControl)
 
 
 # Get cell info for speck populations
-exportSingleCell('speckPosGate', 'speckNegGate', 'asc', "B530.30.A")
+exportSingleCell('speckPosGate', 'speckNegGate', 'single2', "B530.30.A")
 
 # Mean of NLRP3 for each channel to evaluate overall expression level
 nlrp3_means <- c()
@@ -63,8 +64,6 @@ for(i in 1:length(speckName)){
   sampleMean <- gm_mean(speckAll[[i]])
   nlrp3_means <- c(nlrp3_means, sampleMean)
 }
-
-# ggcyto(gs, subset = 'asc', aes(x = "B530.30.A")) + geom_density()
 
 sec50 <- c()
 minimum <- c()
@@ -189,8 +188,8 @@ results <- data.frame(well = speckName,
 ggsave(filename = 'graph.png', device = 'png',
        path = resultDir,
        limitsize = F,
-       width = 3840,
-       height = 2160,
+       width = 1920,
+       height = 1080,
        units = 'px',
        scale = 2,
        plot = ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
