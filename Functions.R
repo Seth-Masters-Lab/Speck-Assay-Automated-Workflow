@@ -15,7 +15,7 @@ library(drda)
 
 ## Import FCS files and perform cleanup if desired ##
 
-fcsImport <- function(path, clean, logTrans){
+fcsImportLogicle <- function(path, clean, logTrans){
   
   # Load Data
   myfiles <- list.files(path = path, pattern = ".fcs", ignore.case = T)
@@ -38,8 +38,43 @@ fcsImport <- function(path, clean, logTrans){
     upper <- gsub(x = logRange, pattern = "*.:", replacement = "")
     upper <- strtoi(upper)
     
-    trans <- estimateLogicle(fs[[1]], colnames(fs[,lower:upper]))
-    fs <- transform(fs, trans)
+    trans <- logicleTransform()
+    transformat <- transformList(colnames(fs[,lower:upper]), trans)
+    fs <- transform(fs, transformat)
+  }
+  resultDir <<- sub("Data", 'Results', path)
+  dir.create(sub("Data", 'Results', path), recursive = T)
+  return(fs)
+}
+
+
+fcsImportLog <- function(path, clean, logTrans){
+  
+  # Load Data
+  myfiles <- list.files(path = path, pattern = ".fcs", ignore.case = T)
+  fs <- read.flowSet(myfiles, path = path, alter.names = T)
+  
+  # Assign well ID to samples
+  pData(fs)$well <- gsub(".*_.*_(.*)_.*.fcs","\\1",sampleNames(fs))
+  
+  # Data Cleaning
+  if(clean == T){
+    fs <- flow_auto_qc(fs, mini_report = F, html_report = F, fcs_QC = F, folder_results = F)
+  }
+  
+  # Log transformation
+  if(logTrans == T){
+    print(fs[[1]]@parameters@data[1])
+    logRange <- readline("Please input the channels to be converted to log scale, (eg. 5:10): ")
+    lower <- gsub(x = logRange, pattern = ":.*", replacement = "")
+    lower <- strtoi(lower)
+    upper <- gsub(x = logRange, pattern = "*.:", replacement = "")
+    upper <- strtoi(upper)
+    
+    trans <- logTransform(logbase = 10, r = 1, d = 1)
+    t2 <- transformList(colnames(fs[,lower:upper]), trans)
+    
+    fs <- suppressWarnings(transform(fs, t2))
   }
   resultDir <<- sub("Data", 'Results', path)
   dir.create(sub("Data", 'Results', path), recursive = T)
@@ -206,21 +241,25 @@ exportSingleCell <- function(speckPosGate, speckNegGate, ascGate, facsChannel){
     # Export Speck positive population
     temp <- exprs(speckPosData[[i]])
     temp <- temp[,facsChannel]
+    temp <- temp[is.finite(temp)]
     temp <- list(temp)
     speckPosRaw <<- c(speckPosRaw, temp)
     
     # Export speck negative population
     temp <- exprs(speckNegData[[i]])
     temp <- temp[,facsChannel]
+    temp <- temp[is.finite(temp)]
     temp <- list(temp)
     speckNegRaw <<- c(speckNegRaw, temp)
     
     # Export all asc cells
     temp <- exprs(totalCellData[[i]])
     temp <- temp[,facsChannel]
+    temp <- temp[is.finite(temp)]
     temp <- list(temp)
     speckAll <<- c(speckAll, temp)
   }
+  
   cat("Exported: \n", "speckName \n", "speckPosRaw \n", "speckNegRaw \n", "speckAll", sep = "")
 }
 

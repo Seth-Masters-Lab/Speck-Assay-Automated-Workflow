@@ -7,7 +7,7 @@ source('Functions.R')
 path <- 'Data/Testing_NLRP3_library_12_sample_1A-H'
 
 
-fs <- fcsImport(path, T, T)
+fs <- fcsImportLogicle(path, T, T)
 
 # Create an empty gating set
 gs <- GatingSet(fs)
@@ -34,7 +34,7 @@ gate1dc(gatingSet = gs, parentPop = 'root', xchannel = 'FSC.A', name = 'debris',
 
 #Single cell gates
 gate2dc(gs, 'debris', xchannel = 'SSC.W', ychannel = 'SSC.A', quantile = 0.95,
-       name = 'single1', plot = F, kpop = 2, save = T, target = c(4, 3.5), controlSample = gatingControl)
+       name = 'single1', plot = F, kpop = 2, save = T, target = NULL, controlSample = gatingControl)
 
 gate2dc(gs, 'single1', xchannel = 'FSC.A', ychannel = 'FSC.H', quantile = 0.95,
        name = 'single2', plot = F, kpop = 1, save = T, controlSample = gatingControl)
@@ -47,10 +47,10 @@ gate2dc(gs, 'single1', xchannel = 'FSC.A', ychannel = 'FSC.H', quantile = 0.95,
 
 
 #Speck negative/positive gate
-gate1dc(gs, 'single2', xchannel = 'V450.50.W', range = c(3.8, 4.02), positive = T,
+gate1dc(gs, 'single2', xchannel = 'V450.50.W', range = NULL, positive = T,
        name = 'speckNegGate', plot = F, smoothing = 1.5, peaks = NULL, save = T,
        controlSample = gatingControl)
-gate1dc(gs, 'single2', xchannel = 'V450.50.W', range = c(3.8, 4.02), positive = F,
+gate1dc(gs, 'single2', xchannel = 'V450.50.W', range = NULL, positive = F,
        name = 'speckPosGate', plot = F, smoothing = 1.5, peaks = NULL, save = T,
        controlSample = gatingControl)
 
@@ -78,7 +78,7 @@ bic <- c()
 for(i in 1:length(speckName)){
   
   # Step-binning for data
-  binData <- stepBin(i, 0.01, speckAll, speckPosRaw, speckNegRaw)
+  binData <- stepBin(i, 0.05, speckAll, speckPosRaw, speckNegRaw)
   
   if(!is.null(bin)){
     #Distributions of speck- and speck+ populations
@@ -122,8 +122,8 @@ for(i in 1:length(speckName)){
       ec50 <- `is.na<-`(ec50)
       cat("Sample", speckName[i], "ec50 out of bounds \n", sep = " ")}
     
-    
-    ec50 <- 10^ec50
+    trans <- inverseLogicleTransform(logicleTransform())
+    ec50 <- trans(ec50)
     sec50 <- c(sec50, ec50)
     
     plot(curve_fit, main = speckName[[i]])
@@ -178,7 +178,7 @@ results <- data.frame(well = speckName,
                       aic = aic,
                       bic = bic)
 
-# print(ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
+print(ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
 
 
 
