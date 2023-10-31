@@ -4,7 +4,7 @@ rm(list=ls())
 source('Functions.R')
 
 
-path <- 'Data/Testing_NLRP3_library_12_sample_1A-H'
+path <- 'Data/ASC50 calculation/20230622_Nlrp3 library 12/P2 cold'
 
 
 fs <- fcsImportLogicle(path, T, T)
@@ -78,7 +78,7 @@ bic <- c()
 for(i in 1:length(speckName)){
   
   # Step-binning for data
-  binData <- stepBin(i, 0.05, speckAll, speckPosRaw, speckNegRaw)
+  binData <- stepBin(i, 0.1, speckAll, speckPosRaw, speckNegRaw)
   
   if(!is.null(bin)){
     #Distributions of speck- and speck+ populations
@@ -94,39 +94,100 @@ for(i in 1:length(speckName)){
     
     
     # Curve fitting function
-    curve_fit <- drda::drda(
-      formula = speck$speckPositive~speck$NLRP3,
-      data = speck,
-      lower_bound = c(0, -Inf, -Inf, 0),
-      upper_bound = c(1, 1, +Inf, +Inf),
-      mean_function = 'l4'
+    
+    tryCatch(
+      {
+        curve_fit <- drda::drda(
+          formula = speck$speckPositive~speck$NLRP3,
+          data = speck,
+          lower_bound = c(0, -Inf, -Inf, 0),
+          upper_bound = c(1, 1, +Inf, +Inf),
+          mean_function = 'l4'
+        )
+        
+        curve_data <- summary(curve_fit)
+        minimum <- c(minimum, curve_data$coefficients[1])
+        height <- c(height, curve_data$coefficients[2])
+        slope <- c(slope, curve_data$coefficients[3])
+        midpoint <- c(midpoint, curve_data$coefficients[4])
+        residual_std_err <- c(residual_std_err, curve_data$sigma)
+        loglik <- c(loglik, curve_data$loglik)
+        aic <- c(aic, curve_data$aic)
+        bic <- c(bic, curve_data$bic)
+        
+        
+        ec50 <- curve_fit$coefficients['phi']
+        ec50 <- ec50[[1]]
+        
+        # Filters out ec50 values which are greater than the range of the curve
+        # Only relevant for small noisy curves
+        if(max(speck$NLRP3) < ec50){
+          ec50 <- `is.na<-`(ec50)
+          cat("Sample", speckName[i], "ec50 out of bounds \n", sep = " ")}
+        
+        trans <- inverseLogicleTransform(logicleTransform())
+        ec50 <- trans(ec50)
+        sec50 <- c(sec50, ec50)
+        
+        plot(curve_fit, main = speckName[[i]], xlim = c(0,4), ylim = c(0,1))
+        
+      },
+      # If fitting fails: 
+      error=function(error_message) {
+        message("")
+        message(speckName[[i]])
+        message("Fitting Failed")
+        message("ERROR:")
+        message(error_message)
+        
+        ec50 <<- NA
+        sec50 <<- c(sec50, ec50)
+        minimum <<- c(minimum, NA)
+        height <<- c(height, NA)
+        slope <<- c(slope, NA)
+        midpoint <<- c(midpoint, NA)
+        residual_std_err <<- c(residual_std_err, NA)
+        loglik <<- c(loglik, NA)
+        aic <<- c(aic, NA)
+        bic <<- c(bic, NA)
+        print(paste0("sample ", speckName[i], " unable to calculate ec50 \n"))
+      }
     )
-    curve_data <- summary(curve_fit)
     
-    minimum <- c(minimum, curve_data$coefficients[1])
-    height <- c(height, curve_data$coefficients[2])
-    slope <- c(slope, curve_data$coefficients[3])
-    midpoint <- c(midpoint, curve_data$coefficients[4])
-    residual_std_err <- c(residual_std_err, curve_data$sigma)
-    loglik <- c(loglik, curve_data$loglik)
-    aic <- c(aic, curve_data$aic)
-    bic <- c(bic, curve_data$bic)
-    
-    
-    ec50 <- curve_fit$coefficients['phi']
-    ec50 <- ec50[[1]]
+    # curve_fit <- drda::drda(
+    #   formula = speck$speckPositive~speck$NLRP3,
+    #   data = speck,
+    #   lower_bound = c(0, -Inf, -Inf, 0),
+    #   upper_bound = c(1, 1, +Inf, +Inf),
+    #   mean_function = 'l4'
+    # )
+    # curve_data <- summary(curve_fit)
+    # 
+    # minimum <- c(minimum, curve_data$coefficients[1])
+    # height <- c(height, curve_data$coefficients[2])
+    # slope <- c(slope, curve_data$coefficients[3])
+    # midpoint <- c(midpoint, curve_data$coefficients[4])
+    # residual_std_err <- c(residual_std_err, curve_data$sigma)
+    # loglik <- c(loglik, curve_data$loglik)
+    # aic <- c(aic, curve_data$aic)
+    # bic <- c(bic, curve_data$bic)
+    # 
+    # 
+    # ec50 <- curve_fit$coefficients['phi']
+    # ec50 <- ec50[[1]]
     
     # Filters out ec50 values which are greater than the range of the curve
     # Only relevant for small noisy curves
-    if(max(speck$NLRP3) < ec50){
-      ec50 <- `is.na<-`(ec50)
-      cat("Sample", speckName[i], "ec50 out of bounds \n", sep = " ")}
+    # if(max(speck$NLRP3) < ec50){
+    #   ec50 <- `is.na<-`(ec50)
+    #   cat("Sample", speckName[i], "ec50 out of bounds \n", sep = " ")}
     
-    trans <- inverseLogicleTransform(logicleTransform())
-    ec50 <- trans(ec50)
-    sec50 <- c(sec50, ec50)
+    # trans <- inverseLogicleTransform(logicleTransform())
+    # ec50 <- trans(ec50)
+    # sec50 <- c(sec50, ec50)
+    # 
+    # plot(curve_fit, main = speckName[[i]])
     
-    plot(curve_fit, main = speckName[[i]])
   } else {
     ec50 <- NA
     sec50 <- c(sec50, ec50)
