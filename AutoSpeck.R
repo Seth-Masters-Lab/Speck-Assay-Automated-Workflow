@@ -3,9 +3,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-
-path <- 'Data/ASC50 calculation/20230622_Nlrp3 library 12/P2 cold'
-
+path <- 'Data/ASC50 calculation/Exp N20/N20-R3+K'
 
 fs <- fcsImportLogicle(path, T, T)
 
@@ -24,17 +22,17 @@ ggsave(filename = paste0('total', '.png'), device = 'png',
        width = 1920,
        height = 1080,
        units = 'px',
-       scale = 2,
+       scale = 4,
        plot = ggcyto(gs, subset = 'root', aes(x = 'FSC.A', y = 'SSC.A')) + geom_hex(bins = 200))
 
 # Debris Gate
 gate1dc(gatingSet = gs, parentPop = 'root', xchannel = 'FSC.A', name = 'debris',
-       plot = F, positive = T, range = c(0e5,1e5), smoothing = 1.5, peaks = NULL,
+       plot = F, positive = T, range = c(0.1e5,1e5), smoothing = 1.5, peaks = NULL,
        save = T, controlSample = 1)
 
 #Single cell gates
 gate2dc(gs, 'debris', xchannel = 'SSC.W', ychannel = 'SSC.A', quantile = 0.95,
-       name = 'single1', plot = F, kpop = 2, save = T, target = NULL, controlSample = gatingControl)
+       name = 'single1', plot = F, kpop = 2, save = T, target = c(4, 3.5), controlSample = gatingControl)
 
 gate2dc(gs, 'single1', xchannel = 'FSC.A', ychannel = 'FSC.H', quantile = 0.95,
        name = 'single2', plot = F, kpop = 1, save = T, controlSample = gatingControl)
@@ -74,6 +72,7 @@ residual_std_err <- c()
 loglik <- c()
 aic <- c()
 bic <- c()
+ec50Plot <- c()
 
 for(i in 1:length(speckName)){
   
@@ -82,14 +81,15 @@ for(i in 1:length(speckName)){
   
   if(!is.null(bin)){
     #Distributions of speck- and speck+ populations
+    
     ggplot() +
-      geom_line(data = binData, aes(x = bins, y = SpeckPos), col = "red") +
-      geom_line(data = binData, aes(x = bins, y = SpeckNeg), col = "blue")
+      geom_point(data = binData, aes(x = bins, y = SpeckPos), col = "red") +
+      geom_point(data = binData, aes(x = bins, y = SpeckNeg), col = "blue")
     
     # Calculate proportions of speck+ cells
     speck <- data.frame(NLRP3 = binData$bins, speckPositive = binData$SpeckPos/(binData$SpeckPos + binData$SpeckNeg))
     
-    ggplot(speck, aes(NLRP3, speckPositive)) + geom_line() + labs(title = speckName[[i]])
+    ggplot(speck, aes(NLRP3, speckPositive)) + geom_point() + labs(title = speckName[[i]])
     
     
     
@@ -115,7 +115,6 @@ for(i in 1:length(speckName)){
         aic <- c(aic, curve_data$aic)
         bic <- c(bic, curve_data$bic)
         
-        
         ec50 <- curve_fit$coefficients['phi']
         ec50 <- ec50[[1]]
         
@@ -129,7 +128,14 @@ for(i in 1:length(speckName)){
         ec50 <- trans(ec50)
         sec50 <- c(sec50, ec50)
         
+        png(filename = paste0(resultDir, '/ec50_curves/', speckName[[i]],'.png'))
+        # plot(curve_fit, main = speckName[[i]])
         plot(curve_fit, main = speckName[[i]], xlim = c(0,4), ylim = c(0,1))
+        dev.off()
+        
+      
+        
+        
         
       },
       # If fitting fails: 
@@ -154,39 +160,6 @@ for(i in 1:length(speckName)){
       }
     )
     
-    # curve_fit <- drda::drda(
-    #   formula = speck$speckPositive~speck$NLRP3,
-    #   data = speck,
-    #   lower_bound = c(0, -Inf, -Inf, 0),
-    #   upper_bound = c(1, 1, +Inf, +Inf),
-    #   mean_function = 'l4'
-    # )
-    # curve_data <- summary(curve_fit)
-    # 
-    # minimum <- c(minimum, curve_data$coefficients[1])
-    # height <- c(height, curve_data$coefficients[2])
-    # slope <- c(slope, curve_data$coefficients[3])
-    # midpoint <- c(midpoint, curve_data$coefficients[4])
-    # residual_std_err <- c(residual_std_err, curve_data$sigma)
-    # loglik <- c(loglik, curve_data$loglik)
-    # aic <- c(aic, curve_data$aic)
-    # bic <- c(bic, curve_data$bic)
-    # 
-    # 
-    # ec50 <- curve_fit$coefficients['phi']
-    # ec50 <- ec50[[1]]
-    
-    # Filters out ec50 values which are greater than the range of the curve
-    # Only relevant for small noisy curves
-    # if(max(speck$NLRP3) < ec50){
-    #   ec50 <- `is.na<-`(ec50)
-    #   cat("Sample", speckName[i], "ec50 out of bounds \n", sep = " ")}
-    
-    # trans <- inverseLogicleTransform(logicleTransform())
-    # ec50 <- trans(ec50)
-    # sec50 <- c(sec50, ec50)
-    # 
-    # plot(curve_fit, main = speckName[[i]])
     
   } else {
     ec50 <- NA
@@ -203,11 +176,13 @@ for(i in 1:length(speckName)){
     }
 }
 
+
+# ASC50 calculation (1 - ratio of sample ec50 vs WT)
 speck50 <- 1 - (sec50/sec50[gatingControl])
 
 
 # Filter out samples with too low of a speck positive population
-# Found that ec50 calculation on these samples was wildly inaccurate due to small
+# Found that ec50 calculation on these samples was inaccurate due to small
 # y range of speck proportion
 
 totalSpeck <- c()
@@ -227,9 +202,9 @@ for(i in 1:length(speckName)){
 
 results <- data.frame(well = speckName, 
                       asc50 = speck50,
+                      ec50 = sec50,
                       Speck_Total = totalSpeck,
                       Geometric_Mean_NLRP3 = nlrp3_means,
-                      ec50 = sec50, 
                       minimum = minimum,
                       height = height,
                       slope = slope,
@@ -241,20 +216,15 @@ results <- data.frame(well = speckName,
 
 print(ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
 
-
-
 # Exports the raw data as an excel sheet along with the graph of relative ec50
-
-
 ggsave(filename = 'graph.png', device = 'png',
        path = resultDir,
        limitsize = F,
        width = 1920,
        height = 1080,
        units = 'px',
-       scale = 2,
+       scale = 4,
        plot = ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
 
 write_xlsx(results, path = paste0(resultDir,"/raw_data.xlsx"))
-
-print('Done!')
+print(paste0(path, ' Done!'))

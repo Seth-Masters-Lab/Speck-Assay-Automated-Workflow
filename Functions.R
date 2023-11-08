@@ -43,7 +43,8 @@ fcsImportLogicle <- function(path, clean, logTrans){
     fs <- transform(fs, transformat)
   }
   resultDir <<- sub("Data", 'Results', path)
-  dir.create(sub("Data", 'Results', path), recursive = T)
+  dir.create(resultDir, recursive = T)
+  dir.create(paste0(resultDir, '/ec50_curves/'))
   return(fs)
 }
 
@@ -113,7 +114,7 @@ gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plo
            width = 1920,
            height = 1080,
            units = 'px',
-           scale = 2,
+           scale = 4,
            plot = ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}}, y = {{ychannel}})) + geom_hex(bins = 200) +
              geom_gate(name))
   }
@@ -146,7 +147,7 @@ gate2dc <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, pl
            width = 1920,
            height = 1080,
            units = 'px',
-           scale = 2,
+           scale = 4,
            plot = ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}}, y = {{ychannel}})) + geom_hex(bins = 200) +
              geom_gate(name))
   }
@@ -178,7 +179,7 @@ gate1d <- function(gatingSet, parentPop, xchannel, range, name, plot, positive, 
            width = 1920,
            height = 1080,
            units = 'px',
-           scale = 2,
+           scale = 4,
            plot = ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}})) + geom_density() +
              geom_gate(name))
   }
@@ -207,7 +208,7 @@ gate1dc <- function(gatingSet, parentPop, xchannel, range, name, plot, positive,
            width = 1920,
            height = 1080,
            units = 'px',
-           scale = 2,
+           scale = 4,
            plot = ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}})) + geom_density() +
              geom_gate(name))
   }
