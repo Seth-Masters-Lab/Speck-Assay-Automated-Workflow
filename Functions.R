@@ -15,7 +15,7 @@ library(drda)
 
 ## Import FCS files and perform cleanup if desired ##
 
-fcsImport <- function(path, clean, logTrans){
+fcsImportLogicle <- function(path, clean, logTrans){
   
   # Load Data
   myfiles <- list.files(path = path, pattern = ".fcs", ignore.case = T)
@@ -38,8 +38,44 @@ fcsImport <- function(path, clean, logTrans){
     upper <- gsub(x = logRange, pattern = "*.:", replacement = "")
     upper <- strtoi(upper)
     
-    trans <- estimateLogicle(fs[[1]], colnames(fs[,lower:upper]))
-    fs <- transform(fs, trans)
+    trans <- logicleTransform()
+    transformat <- transformList(colnames(fs[,lower:upper]), trans)
+    fs <- transform(fs, transformat)
+  }
+  resultDir <<- sub("Data", 'Results', path)
+  dir.create(resultDir, recursive = T)
+  dir.create(paste0(resultDir, '/ec50_curves/'))
+  return(fs)
+}
+
+
+fcsImportLog <- function(path, clean, logTrans){
+  
+  # Load Data
+  myfiles <- list.files(path = path, pattern = ".fcs", ignore.case = T)
+  fs <- read.flowSet(myfiles, path = path, alter.names = T)
+  
+  # Assign well ID to samples
+  pData(fs)$well <- gsub(".*_.*_(.*)_.*.fcs","\\1",sampleNames(fs))
+  
+  # Data Cleaning
+  if(clean == T){
+    fs <- flow_auto_qc(fs, mini_report = F, html_report = F, fcs_QC = F, folder_results = F)
+  }
+  
+  # Log transformation
+  if(logTrans == T){
+    print(fs[[1]]@parameters@data[1])
+    logRange <- readline("Please input the channels to be converted to log scale, (eg. 5:10): ")
+    lower <- gsub(x = logRange, pattern = ":.*", replacement = "")
+    lower <- strtoi(lower)
+    upper <- gsub(x = logRange, pattern = "*.:", replacement = "")
+    upper <- strtoi(upper)
+    
+    trans <- logTransform(logbase = 10, r = 1, d = 1)
+    t2 <- transformList(colnames(fs[,lower:upper]), trans)
+    
+    fs <- suppressWarnings(transform(fs, t2))
   }
   resultDir <<- sub("Data", 'Results', path)
   dir.create(sub("Data", 'Results', path), recursive = T)
@@ -57,6 +93,7 @@ gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plo
     target = NULL
   }
   setData <- gs_pop_get_data(gatingSet, parentPop)
+  
   gate <- fsApply(setData, function(fr) openCyto::gate_flowclust_2d(
     fr,
     xChannel = xchannel,
@@ -64,7 +101,6 @@ gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plo
     K = kpop,
     target = target,
     quantile = quantile))
-  
   gs_pop_add(gatingSet, gate, parent = parentPop, name = name)
   recompute(gatingSet)
   if(plot == T){
@@ -75,10 +111,43 @@ gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plo
     ggsave(filename = paste0(name, '.png'), device = 'png',
            path = resultDir,
            limitsize = F,
-           width = 3840,
-           height = 2160,
+           width = 1920,
+           height = 1080,
            units = 'px',
-           scale = 2,
+           scale = 4,
+           plot = ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}}, y = {{ychannel}})) + geom_hex(bins = 200) +
+             geom_gate(name))
+  }
+}
+
+
+## 2D Gate control
+
+gate2dc <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plot, kpop, save, target, controlSample){
+  if(missing(target)){
+    target = NULL
+  }
+  fr <- gh_pop_get_data(gs[[controlSample]], parentPop, returnType = 'flowFrame')
+  gate <- openCyto::gate_flowclust_2d(fr,
+                                     xChannel = xchannel,
+                                     yChannel = ychannel,
+                                     K = kpop,
+                                     target = target,
+                                     quantile = quantile)
+  gs_pop_add(gatingSet, gate, parent = parentPop, name = name)
+  recompute(gatingSet)
+  if(plot == T){
+    print(ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}}, y = {{ychannel}})) + geom_hex(bins = 100) +
+            geom_gate(name))
+  }
+  if(save == T){
+    ggsave(filename = paste0(name, '.png'), device = 'png',
+           path = resultDir,
+           limitsize = F,
+           width = 1920,
+           height = 1080,
+           units = 'px',
+           scale = 4,
            plot = ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}}, y = {{ychannel}})) + geom_hex(bins = 200) +
              geom_gate(name))
   }
@@ -107,14 +176,45 @@ gate1d <- function(gatingSet, parentPop, xchannel, range, name, plot, positive, 
     ggsave(filename = paste0(name, '.png'), device = 'png',
            path = resultDir,
            limitsize = F,
-           width = 3840,
-           height = 2160,
+           width = 1920,
+           height = 1080,
            units = 'px',
-           scale = 2,
+           scale = 4,
            plot = ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}})) + geom_density() +
              geom_gate(name))
   }
 }
+
+## 1D Gate control
+
+gate1dc <- function(gatingSet, parentPop, xchannel, range, name, plot, positive, smoothing, peaks, save, controlSample){
+  fr <- gh_pop_get_data(gs[[controlSample]], parentPop, returnType = 'flowFrame')
+  gate <- openCyto:::.mindensity(fr, 
+                                 channels = xchannel,
+                                 gate_range = range,
+                                 positive = positive,
+                                 adjust = smoothing,
+                                 peaks = peaks)
+  gs_pop_add(gatingSet, gate, parent = parentPop, name = name)
+  recompute(gatingSet)
+  if(plot == T){
+    print(ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}})) + geom_density() +
+            geom_gate(name))
+  }
+  if(save == T){
+    ggsave(filename = paste0(name, '.png'), device = 'png',
+           path = resultDir,
+           limitsize = F,
+           width = 1920,
+           height = 1080,
+           units = 'px',
+           scale = 4,
+           plot = ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}})) + geom_density() +
+             geom_gate(name))
+  }
+}
+
+
 
 
 ################################################################################
@@ -142,21 +242,25 @@ exportSingleCell <- function(speckPosGate, speckNegGate, ascGate, facsChannel){
     # Export Speck positive population
     temp <- exprs(speckPosData[[i]])
     temp <- temp[,facsChannel]
+    temp <- temp[is.finite(temp)]
     temp <- list(temp)
     speckPosRaw <<- c(speckPosRaw, temp)
     
     # Export speck negative population
     temp <- exprs(speckNegData[[i]])
     temp <- temp[,facsChannel]
+    temp <- temp[is.finite(temp)]
     temp <- list(temp)
     speckNegRaw <<- c(speckNegRaw, temp)
     
     # Export all asc cells
     temp <- exprs(totalCellData[[i]])
     temp <- temp[,facsChannel]
+    temp <- temp[is.finite(temp)]
     temp <- list(temp)
     speckAll <<- c(speckAll, temp)
   }
+  
   cat("Exported: \n", "speckName \n", "speckPosRaw \n", "speckNegRaw \n", "speckAll", sep = "")
 }
 
