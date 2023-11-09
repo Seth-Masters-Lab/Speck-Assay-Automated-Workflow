@@ -3,7 +3,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-path <- 'Data/ASC50 calculation/Exp N20/N20-R3+K'
+path <- 'Data/20230622_Nlrp3 library 12/P2'
 
 fs <- fcsImportLogicle(path, T, T)
 
