@@ -5,6 +5,8 @@ source('Functions.R')
 
 path <- 'Data/20230622_Nlrp3 library 12/P2'
 
+channelInfo('Data/20230622_Nlrp3 library 12/P2')
+
 fs <- fcsImportLogicle(path, T, T)
 
 # Create an empty gating set

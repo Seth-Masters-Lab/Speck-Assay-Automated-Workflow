@@ -11,6 +11,13 @@ library(drda)
 
 ################################################################################
 
+## List Channel Info
+
+channelInfo <- function(path){
+  myfiles <- list.files(path = path, pattern = ".fcs", ignore.case = T)
+  fs <- read.flowSet(myfiles[1], path = path, alter.names = T)
+  print(fs[[1]]@parameters@data[1])
+}
 
 
 ## Import FCS files and perform cleanup if desired ##
