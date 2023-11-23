@@ -45,6 +45,7 @@ fcsImportLogicle <- function(path, clean, logTrans){
   resultDir <<- sub("Data", 'Results', path)
   dir.create(resultDir, recursive = T)
   dir.create(paste0(resultDir, '/ec50_curves/'))
+  dir.create(paste0(resultDir, '/raw_curves/'))
   return(fs)
 }
 
@@ -277,7 +278,7 @@ exportSingleCell <- function(speckPosGate, speckNegGate, ascGate, facsChannel){
 
 stepBin <- function(index, stepLen, speckAll, speckPosRaw, speckNegRaw){
   
-  plotRange <- c(min(speckAll[[index]]), max(speckAll[[index]]))
+  plotRange <- c(0, 4)
   binStart <- plotRange[1]
   binSize <- (plotRange[2] - plotRange[1]) / 3
   bin <<- c()
