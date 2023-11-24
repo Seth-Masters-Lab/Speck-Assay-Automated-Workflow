@@ -73,7 +73,7 @@ loglik <- c()
 aic <- c()
 bic <- c()
 ec50Plot <- c()
-rawY <- list()
+rawY <- c()
 rawIndex <- c()
 
 for(i in 1:length(speckName)){
@@ -130,7 +130,7 @@ for(i in 1:length(speckName)){
         ec50 <- trans(ec50)
         sec50 <- c(sec50, ec50)
         
-        rawY <- append(rawY, speck$speckPositive)
+        rawY <- c(rawY, speck$speckPositive)#########################
         rawIndex <- c(rawIndex, speckName[[i]])
         
         write_xlsx(speck, path = paste0(resultDir, '/raw_curves/', speckName[[i]], '.xlsx'))
