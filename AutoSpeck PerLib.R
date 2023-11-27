@@ -2,7 +2,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-libraryPath <- 'Data/ASC50 calculation/20231012_Nlrp3 library 18/'
+libraryPath <- 'Data/ASC50 calculation/20230528_Nlrp3 library 5/'
 FileNames <- list.files(libraryPath)
 
 path <- paste0(libraryPath, FileNames[1])

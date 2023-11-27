@@ -31,12 +31,12 @@ fcsImportLogicle <- function(path, clean, logTrans){
   
   # Log transformation
   if(logTrans == T){
-    print(fs[[1]]@parameters@data[1])
-    logRange <- readline("Please input the channels to be converted to log scale, (eg. 5:10): ")
-    lower <- gsub(x = logRange, pattern = ":.*", replacement = "")
-    lower <- strtoi(lower)
-    upper <- gsub(x = logRange, pattern = "*.:", replacement = "")
-    upper <- strtoi(upper)
+    # print(fs[[1]]@parameters@data[1])
+    # logRange <- readline("Please input the channels to be converted to log scale, (eg. 5:10): ")
+    # lower <- gsub(x = logRange, pattern = ":.*", replacement = "")
+    # lower <- strtoi(lower)
+    # upper <- gsub(x = logRange, pattern = "*.:", replacement = "")
+    # upper <- strtoi(upper)
     
     trans <- logicleTransform()
     transformat <- transformList(colnames(fs[,lower:upper]), trans)
