@@ -45,7 +45,6 @@ fcsImportLogicle <- function(path, clean, logTrans){
   resultDir <<- sub("Data", 'Results', path)
   dir.create(resultDir, recursive = T)
   dir.create(paste0(resultDir, '/ec50_curves/'))
-  dir.create(paste0(resultDir, '/raw_curves/'))
   return(fs)
 }
 

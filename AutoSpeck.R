@@ -130,10 +130,11 @@ for(i in 1:length(speckName)){
         ec50 <- trans(ec50)
         sec50 <- c(sec50, ec50)
         
-        rawY <- c(rawY, speck$speckPositive)#########################
+        Y <- list(speck$speckPositive)
+        rawY <- c(rawY, Y)
         rawIndex <- c(rawIndex, speckName[[i]])
         
-        write_xlsx(speck, path = paste0(resultDir, '/raw_curves/', speckName[[i]], '.xlsx'))
+        
         png(filename = paste0(resultDir, '/ec50_curves/', speckName[[i]],'.png'))
         # plot(curve_fit, main = speckName[[i]])
         plot(curve_fit, main = speckName[[i]], xlim = c(0,4), ylim = c(0,1))
@@ -233,7 +234,11 @@ ggsave(filename = 'graph.png', device = 'png',
        plot = ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
 
 rawX <- speck$NLRP3
-rawCurveList <- list(rawX, rawY, rawIndex)
+rawIndex <- c("NLRP3", rawIndex)
+rawCurveList <- list(rawX, rawY)
+rawCurves <- as.data.frame(rawCurveList)
+colnames(rawCurves) <- rawIndex
 
+write_xlsx(rawCurves, path = paste0(resultDir, '/raw_curves', '.xlsx'))
 write_xlsx(results, path = paste0(resultDir,"/raw_data.xlsx"))
 print(paste0(path, ' Done!'))
