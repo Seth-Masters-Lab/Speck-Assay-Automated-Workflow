@@ -2,7 +2,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-libraryPath <- 'Data/ASC50 calculation/20230528_Nlrp3 library 5/'
+libraryPath <- 'Data/ASC50 calculation/20230927_Nlrp3 library 17/'
 FileNames <- list.files(libraryPath)
 
 path <- paste0(libraryPath, FileNames[1])
@@ -245,6 +245,8 @@ for(i in 1:length(FileNames)){
          plot = ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
   
   rawX <- speck$NLRP3
+  trans <- inverseLogicleTransform(logicleTransform())
+  rawX <- trans(rawX)
   rawIndex <- c("NLRP3", rawIndex)
   rawCurveList <- list(rawX, rawY)
   rawCurves <- as.data.frame(rawCurveList)
