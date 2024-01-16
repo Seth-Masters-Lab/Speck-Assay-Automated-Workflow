@@ -3,7 +3,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-path <- ''
+path <- 'Data/Testing_NLRP3_library_12_sample_1A-H'
 
 fs <- fcsImportLogicle(path, T, T)
 
@@ -73,6 +73,8 @@ loglik <- c()
 aic <- c()
 bic <- c()
 ec50Plot <- c()
+rawY <- c()
+rawIndex <- c()
 
 for(i in 1:length(speckName)){
   
@@ -127,6 +129,11 @@ for(i in 1:length(speckName)){
         trans <- inverseLogicleTransform(logicleTransform())
         ec50 <- trans(ec50)
         sec50 <- c(sec50, ec50)
+        
+        Y <- list(speck$speckPositive)
+        rawY <- c(rawY, Y)
+        rawIndex <- c(rawIndex, speckName[[i]])
+        
         
         png(filename = paste0(resultDir, '/ec50_curves/', speckName[[i]],'.png'))
         # plot(curve_fit, main = speckName[[i]])
@@ -226,5 +233,12 @@ ggsave(filename = 'graph.png', device = 'png',
        scale = 4,
        plot = ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
 
+rawX <- speck$NLRP3
+rawIndex <- c("NLRP3", rawIndex)
+rawCurveList <- list(rawX, rawY)
+rawCurves <- as.data.frame(rawCurveList)
+colnames(rawCurves) <- rawIndex
+
+write_xlsx(rawCurves, path = paste0(resultDir, '/raw_curves', '.xlsx'))
 write_xlsx(results, path = paste0(resultDir,"/raw_data.xlsx"))
 print(paste0(path, ' Done!'))

@@ -2,7 +2,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-libraryPath <- 'Data/ASC50 calculation/20231012_Nlrp3 library 18/'
+libraryPath <- 'Data/ASC50 calculation/20230927_Nlrp3 library 17/'
 FileNames <- list.files(libraryPath)
 
 path <- paste0(libraryPath, FileNames[1])
@@ -84,6 +84,8 @@ for(i in 1:length(FileNames)){
   aic <- c()
   bic <- c()
   ec50Plot <- c()
+  rawY <- c()
+  rawIndex <- c()
   
   for(i in 1:length(speckName)){
     
@@ -138,6 +140,11 @@ for(i in 1:length(FileNames)){
           trans <- inverseLogicleTransform(logicleTransform())
           ec50 <- trans(ec50)
           sec50 <- c(sec50, ec50)
+          
+          Y <- list(speck$speckPositive)
+          rawY <- c(rawY, Y)
+          rawIndex <- c(rawIndex, speckName[[i]])
+          
           
           png(filename = paste0(resultDir, '/ec50_curves/', speckName[[i]],'.png'))
           # plot(curve_fit, main = speckName[[i]])
@@ -237,6 +244,15 @@ for(i in 1:length(FileNames)){
          scale = 4,
          plot = ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
   
+  rawX <- speck$NLRP3
+  trans <- inverseLogicleTransform(logicleTransform())
+  rawX <- trans(rawX)
+  rawIndex <- c("NLRP3", rawIndex)
+  rawCurveList <- list(rawX, rawY)
+  rawCurves <- as.data.frame(rawCurveList)
+  colnames(rawCurves) <- rawIndex
+  
+  write_xlsx(rawCurves, path = paste0(resultDir, '/raw_curves', '.xlsx'))
   write_xlsx(results, path = paste0(resultDir,"/raw_data.xlsx"))
   print(paste0(path, ' Done!'))
   
