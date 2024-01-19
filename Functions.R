@@ -55,6 +55,32 @@ fcsImportLogicle <- function(path, clean, logTrans){
   return(fs)
 }
 
+fcsImportLogicleLib <- function(path, clean, logTrans){
+  
+  # Load Data
+  myfiles <- list.files(path = path, pattern = ".fcs", ignore.case = T)
+  fs <- read.flowSet(myfiles, path = path, alter.names = T)
+  
+  # Assign well ID to samples
+  pData(fs)$well <- gsub(".*_.*_(.*)_.*.fcs","\\1",sampleNames(fs))
+  
+  # Data Cleaning
+  if(clean == T){
+    fs <- flow_auto_qc(fs, mini_report = F, html_report = F, fcs_QC = F, folder_results = F)
+  }
+  
+  # Log transformation
+  if(logTrans == T){
+    trans <- logicleTransform()
+    transformat <- transformList(colnames(fs[,lower:upper]), trans)
+    fs <- transform(fs, transformat)
+  }
+  resultDir <<- sub("Data", 'Results', path)
+  dir.create(resultDir, recursive = T)
+  dir.create(paste0(resultDir, '/ec50_curves/'))
+  return(fs)
+}
+
 
 fcsImportLog <- function(path, clean, logTrans){
   
@@ -284,7 +310,7 @@ exportSingleCell <- function(speckPosGate, speckNegGate, ascGate, facsChannel){
 
 stepBin <- function(index, stepLen, speckAll, speckPosRaw, speckNegRaw){
   
-  plotRange <- c(min(speckAll[[index]]), max(speckAll[[index]]))
+  plotRange <- c(0, 5)
   binStart <- plotRange[1]
   binSize <- (plotRange[2] - plotRange[1]) / 3
   bin <<- c()
@@ -296,9 +322,9 @@ stepBin <- function(index, stepLen, speckAll, speckPosRaw, speckNegRaw){
     binEnd <- binStart + binSize
     posBinCount <- sum(speckPosRaw[[index]] >= binStart & speckPosRaw[[index]] <= binEnd)
     negBinCount <- sum(speckNegRaw[[index]] >= binStart & speckNegRaw[[index]] <= binEnd)
-    if(posBinCount+negBinCount < 100){
-      break
-    }
+    # if(posBinCount+negBinCount < 100){
+    #   break
+    # }
     bin <<- c(bin, binEnd)
     speckPosCounts <<- c(speckPosCounts, posBinCount)
     speckNegCounts <<- c(speckNegCounts, negBinCount)

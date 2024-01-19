@@ -2,7 +2,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-libraryPath <- 'Data/ASC50 calculation/20231012_Nlrp3 library 18/'
+libraryPath <- ''
 FileNames <- list.files(libraryPath)
 
 path <- paste0(libraryPath, FileNames[1])
@@ -19,7 +19,7 @@ gatingControl <- strtoi(readline("Please enter sample number to be used as contr
 for(i in 1:length(FileNames)){
   path <- paste0(libraryPath, FileNames[i])
   
-  fs <- fcsImportLogicle(path, T, T)
+  fs <- fcsImportLogicleLib(path, T, T)
   
   # Create an empty gating set
   gs <- GatingSet(fs)
@@ -56,16 +56,16 @@ for(i in 1:length(FileNames)){
   
   
   #Speck negative/positive gate
-  gate1dc(gs, 'single2', xchannel = 'V450.50.W', range = NULL, positive = T,
+  gate1dc(gs, 'single2', xchannel = '', range = NULL, positive = T,
           name = 'speckNegGate', plot = F, smoothing = 1.5, peaks = NULL, save = T,
           controlSample = gatingControl)
-  gate1dc(gs, 'single2', xchannel = 'V450.50.W', range = NULL, positive = F,
+  gate1dc(gs, 'single2', xchannel = '', range = NULL, positive = F,
           name = 'speckPosGate', plot = F, smoothing = 1.5, peaks = NULL, save = T,
           controlSample = gatingControl)
   
   
   # Get cell info for speck populations
-  exportSingleCell('speckPosGate', 'speckNegGate', 'single2', "B530.30.A")
+  exportSingleCell('speckPosGate', 'speckNegGate', 'single2', "")
   
   # Mean of NLRP3 for each channel to evaluate overall expression level
   nlrp3_means <- c()
@@ -84,6 +84,8 @@ for(i in 1:length(FileNames)){
   aic <- c()
   bic <- c()
   ec50Plot <- c()
+  rawY <- c()
+  rawIndex <- c()
   
   for(i in 1:length(speckName)){
     
@@ -138,6 +140,11 @@ for(i in 1:length(FileNames)){
           trans <- inverseLogicleTransform(logicleTransform())
           ec50 <- trans(ec50)
           sec50 <- c(sec50, ec50)
+          
+          Y <- list(speck$speckPositive)
+          rawY <- c(rawY, Y)
+          rawIndex <- c(rawIndex, speckName[[i]])
+          
           
           png(filename = paste0(resultDir, '/ec50_curves/', speckName[[i]],'.png'))
           # plot(curve_fit, main = speckName[[i]])
@@ -237,6 +244,15 @@ for(i in 1:length(FileNames)){
          scale = 4,
          plot = ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
   
+  rawX <- speck$NLRP3
+  trans <- inverseLogicleTransform(logicleTransform())
+  rawX <- trans(rawX)
+  rawIndex <- c("NLRP3", rawIndex)
+  rawCurveList <- list(rawX, rawY)
+  rawCurves <- as.data.frame(rawCurveList)
+  colnames(rawCurves) <- rawIndex
+  
+  write_xlsx(rawCurves, path = paste0(resultDir, '/raw_curves', '.xlsx'))
   write_xlsx(results, path = paste0(resultDir,"/raw_data.xlsx"))
   print(paste0(path, ' Done!'))
   
