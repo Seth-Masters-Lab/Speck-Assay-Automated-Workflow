@@ -137,7 +137,7 @@ for(i in 1:length(speckName)){
         
         png(filename = paste0(resultDir, '/ec50_curves/', speckName[[i]],'.png'))
         # plot(curve_fit, main = speckName[[i]])
-        plot(curve_fit, main = speckName[[i]], xlim = c(0,4), ylim = c(0,1))
+        plot(curve_fit, main = speckName[[i]], xlim = c(0,5), ylim = c(0,1))
         dev.off()
         
       
@@ -207,7 +207,7 @@ for(i in 1:length(speckName)){
 
 
 
-results <- data.frame(well = speckName, 
+results <- data.frame(sample = speckName, 
                       asc50 = speck50,
                       ec50 = sec50,
                       Speck_Total = totalSpeck,
