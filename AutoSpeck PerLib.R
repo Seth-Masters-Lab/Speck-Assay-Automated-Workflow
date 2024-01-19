@@ -2,7 +2,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-libraryPath <- 'Data/ASC50 calculation/20230927_Nlrp3 library 17/'
+libraryPath <- ''
 FileNames <- list.files(libraryPath)
 
 path <- paste0(libraryPath, FileNames[1])
@@ -56,16 +56,16 @@ for(i in 1:length(FileNames)){
   
   
   #Speck negative/positive gate
-  gate1dc(gs, 'single2', xchannel = 'V450.50.W', range = NULL, positive = T,
+  gate1dc(gs, 'single2', xchannel = '', range = NULL, positive = T,
           name = 'speckNegGate', plot = F, smoothing = 1.5, peaks = NULL, save = T,
           controlSample = gatingControl)
-  gate1dc(gs, 'single2', xchannel = 'V450.50.W', range = NULL, positive = F,
+  gate1dc(gs, 'single2', xchannel = '', range = NULL, positive = F,
           name = 'speckPosGate', plot = F, smoothing = 1.5, peaks = NULL, save = T,
           controlSample = gatingControl)
   
   
   # Get cell info for speck populations
-  exportSingleCell('speckPosGate', 'speckNegGate', 'single2', "B530.30.A")
+  exportSingleCell('speckPosGate', 'speckNegGate', 'single2', "")
   
   # Mean of NLRP3 for each channel to evaluate overall expression level
   nlrp3_means <- c()
