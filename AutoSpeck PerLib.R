@@ -19,7 +19,7 @@ gatingControl <- strtoi(readline("Please enter sample number to be used as contr
 for(i in 1:length(FileNames)){
   path <- paste0(libraryPath, FileNames[i])
   
-  fs <- fcsImportLogicle(path, T, T)
+  fs <- fcsImportLogicleLib(path, T, T)
   
   # Create an empty gating set
   gs <- GatingSet(fs)

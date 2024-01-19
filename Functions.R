@@ -55,6 +55,32 @@ fcsImportLogicle <- function(path, clean, logTrans){
   return(fs)
 }
 
+fcsImportLogicleLib <- function(path, clean, logTrans){
+  
+  # Load Data
+  myfiles <- list.files(path = path, pattern = ".fcs", ignore.case = T)
+  fs <- read.flowSet(myfiles, path = path, alter.names = T)
+  
+  # Assign well ID to samples
+  pData(fs)$well <- gsub(".*_.*_(.*)_.*.fcs","\\1",sampleNames(fs))
+  
+  # Data Cleaning
+  if(clean == T){
+    fs <- flow_auto_qc(fs, mini_report = F, html_report = F, fcs_QC = F, folder_results = F)
+  }
+  
+  # Log transformation
+  if(logTrans == T){
+    trans <- logicleTransform()
+    transformat <- transformList(colnames(fs[,lower:upper]), trans)
+    fs <- transform(fs, transformat)
+  }
+  resultDir <<- sub("Data", 'Results', path)
+  dir.create(resultDir, recursive = T)
+  dir.create(paste0(resultDir, '/ec50_curves/'))
+  return(fs)
+}
+
 
 fcsImportLog <- function(path, clean, logTrans){
   
