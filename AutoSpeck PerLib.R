@@ -2,7 +2,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-libraryPath <- ''
+libraryPath <- 'Data/Jared/'
 FileNames <- list.files(libraryPath)
 
 path <- paste0(libraryPath, FileNames[1])

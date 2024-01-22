@@ -3,7 +3,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-path <- ''
+path <- 'Data/Testing_NLRP3_library_12_sample_1A-H'
 
 fs <- fcsImportLogicle(path, T, T)
 
@@ -14,7 +14,7 @@ gs <- GatingSet(fs)
 gatingControl <- strtoi(readline("Please enter sample number to be used as control for gating: "))
 
 # QA Step
-ggcyto(gs, subset = 'root', aes(x = 'FSC.A', y = 'SSC.A')) + geom_hex(bins = 200)
+# ggcyto(gs, subset = 'root', aes(x = 'FSC.A', y = 'SSC.A')) + geom_hex(bins = 200)
 
 ggsave(filename = paste0('total', '.png'), device = 'png',
        path = resultDir,
@@ -45,16 +45,16 @@ gate2dc(gs, 'single1', xchannel = 'FSC.A', ychannel = 'FSC.H', quantile = 0.95,
 
 
 #Speck negative/positive gate
-gate1dc(gs, 'single2', xchannel = '', range = NULL, positive = T,
+gate1dc(gs, 'single2', xchannel = 'V450.50.W', range = NULL, positive = T,
        name = 'speckNegGate', plot = F, smoothing = 1.5, peaks = NULL, save = T,
        controlSample = gatingControl)
-gate1dc(gs, 'single2', xchannel = '', range = NULL, positive = F,
+gate1dc(gs, 'single2', xchannel = 'V450.50.W', range = NULL, positive = F,
        name = 'speckPosGate', plot = F, smoothing = 1.5, peaks = NULL, save = T,
        controlSample = gatingControl)
 
 
 # Get cell info for speck populations
-exportSingleCell('speckPosGate', 'speckNegGate', 'single2', "")
+exportSingleCell('speckPosGate', 'speckNegGate', 'single2', "B530.30.A")
 
 # Mean of NLRP3 for each channel to evaluate overall expression level
 nlrp3_means <- c()
