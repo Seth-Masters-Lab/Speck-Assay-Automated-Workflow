@@ -16,7 +16,8 @@ ui <- fluidPage(
       selectInput(inputId = 'ascChannel', label = "Please select your ASC channel", choices = NULL),
       selectInput(inputId = 'NLRP3Channel', label = "Please select your NLRP3 channel", choices = NULL),
       selectInput(inputId = 'gatingControl', 
-                  label = "Please select a sample to be used as a control for gating and ASC50 calculation", choices = NULL)
+                  label = "Please select a sample to be used as a control for gating and ASC50 calculation", choices = NULL),
+      
       
     ),
     mainPanel(
@@ -179,8 +180,7 @@ server <- function(input, output, session) {
             
             
             png(filename = paste0(resultDir, '/ec50_curves/', speckName[[i]],'.png'))
-            # plot(curve_fit, main = speckName[[i]])
-            plot(curve_fit, main = speckName[[i]], xlim = c(0,4), ylim = c(0,1))
+            plot(curve_fit, main = speckName[[i]], xlim = c(0,5), ylim = c(0,1))
             dev.off()
             
             
@@ -190,11 +190,11 @@ server <- function(input, output, session) {
           },
           # If fitting fails: 
           error=function(error_message) {
-            message("")
-            message(speckName[[i]])
-            message("Fitting Failed")
-            message("ERROR:")
-            message(error_message)
+            # message("")
+            # message(speckName[[i]])
+            # message("Fitting Failed")
+            # message("ERROR:")
+            # message(error_message)
             
             ec50 <<- NA
             sec50 <<- c(sec50, ec50)
@@ -277,6 +277,8 @@ server <- function(input, output, session) {
            plot = ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
     
     rawX <<- speck$NLRP3
+    trans <<- inverseLogicleTransform(logicleTransform())
+    rawX <<- trans(rawX)
     rawIndex <<- c("NLRP3", rawIndex)
     rawCurveList <<- list(rawX, rawY)
     rawCurves <<- as.data.frame(rawCurveList)
