@@ -17,6 +17,7 @@ ui <- fluidPage(
       selectInput(inputId = 'NLRP3Channel', label = "Please select your NLRP3 channel", choices = NULL),
       selectInput(inputId = 'gatingControl', 
                   label = "Please select a sample to be used as a control for gating and ASC50 calculation", choices = NULL),
+      uiOutput("logscales")
       
       
     ),
@@ -47,14 +48,26 @@ server <- function(input, output, session) {
     req(selectedData())
     channelList <- selectedData()
     channelDF <- data.frame(Channels = unlist(channelList), row.names = NULL)
+    newList <- as.list.data.frame(channelDF)
     updateSelectInput(session, 'ascChannel', choices = channelDF)
     updateSelectInput(session, 'NLRP3Channel', choices = channelDF)
     updateSelectInput(session, 'gatingControl', choices = list.files(path = input$data, pattern = "\\.fcs$", ignore.case = TRUE))
+    output$logscales <- renderUI({
+      req(channelDF)
+      checkboxGroupInput("logscales", label = "Please select channels to convert to log values:", choices = newList$Channels)
+    
+  })
+  
+    
+    
   })
   
   observeEvent(input$startBtn, {
+    print(input$logscales)
     path <<- input$data
-    fs <<- fcsImportLogicle(path, T, T)
+    fs <<- fcsImportLogicle(path, T, F)
+    
+    ##################### USE MATCH FUNCTION FOR CHANNEL LOG INPUT ####################
     
     # Create an empty gating set
     gs <<- GatingSet(fs)
