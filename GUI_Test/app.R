@@ -70,11 +70,12 @@ server <- function(input, output, session) {
     channelDF <- data.frame(Channels = unlist(channelList), row.names = NULL)
     newList <- as.list.data.frame(channelDF)
     
-    trans <- logicleTransform()
-    selectedChannels <- match(input$logscales, newList$Channels)
-    cat(selectedChannels)
-    transformat <- transformList(colnames(fs[,selectedChannels]), trans)
-    fs <- transform(fs, transformat)
+    if(!is.null(input$logscales)){
+      trans <- logicleTransform()
+      selectedChannels <- match(input$logscales, newList$Channels)
+      cat(selectedChannels)
+      transformat <- transformList(colnames(fs[,selectedChannels]), trans)
+      fs <- transform(fs, transformat)}
     
     
     # Create an empty gating set
@@ -144,7 +145,7 @@ server <- function(input, output, session) {
     for(i in 1:length(speckName)){
       
       # Step-binning for data
-      binData <<- stepBin(i, 0.1, speckAll, speckPosRaw, speckNegRaw)
+      binData <- stepBin(i, 0.1, speckAll, speckPosRaw, speckNegRaw)
       
       if(!is.null(bin)){
         #Distributions of speck- and speck+ populations
@@ -154,7 +155,7 @@ server <- function(input, output, session) {
           geom_point(data = binData, aes(x = bins, y = SpeckNeg), col = "blue")
         
         # Calculate proportions of speck+ cells
-        speck <<- data.frame(NLRP3 = binData$bins, speckPositive = binData$SpeckPos/(binData$SpeckPos + binData$SpeckNeg))
+        speck <- data.frame(NLRP3 = binData$bins, speckPositive = binData$SpeckPos/(binData$SpeckPos + binData$SpeckNeg))
         
         ggplot(speck, aes(NLRP3, speckPositive)) + geom_point() + labs(title = speckName[[i]])
         
@@ -164,7 +165,7 @@ server <- function(input, output, session) {
         
         tryCatch(
           {
-            curve_fit <<- drda::drda(
+            curve_fit <- drda::drda(
               formula = speck$speckPositive~speck$NLRP3,
               data = speck,
               lower_bound = c(0, -Inf, -Inf, 0),
@@ -172,36 +173,37 @@ server <- function(input, output, session) {
               mean_function = 'l4'
             )
             
-            curve_data <<- summary(curve_fit)
-            minimum <<- c(minimum, curve_data$coefficients[1])
-            height <<- c(height, curve_data$coefficients[2])
-            slope <<- c(slope, curve_data$coefficients[3])
-            midpoint <<- c(midpoint, curve_data$coefficients[4])
-            residual_std_err <<- c(residual_std_err, curve_data$sigma)
-            loglik <<- c(loglik, curve_data$loglik)
-            aic <<- c(aic, curve_data$aic)
-            bic <<- c(bic, curve_data$bic)
+            curve_data <- summary(curve_fit)
+            minimum <- c(minimum, curve_data$coefficients[1])
+            height <- c(height, curve_data$coefficients[2])
+            slope <- c(slope, curve_data$coefficients[3])
+            midpoint <- c(midpoint, curve_data$coefficients[4])
+            residual_std_err <- c(residual_std_err, curve_data$sigma)
+            loglik <- c(loglik, curve_data$loglik)
+            aic <- c(aic, curve_data$aic)
+            bic <- c(bic, curve_data$bic)
             
-            ec50 <<- curve_fit$coefficients['phi']
-            ec50 <<- ec50[[1]]
+            ec50 <- curve_fit$coefficients['phi']
+            ec50 <- ec50[[1]]
             
             # Filters out ec50 values which are greater than the range of the curve
             # Only relevant for small noisy curves
             if(max(speck$NLRP3) < ec50){
-              ec50 <<- `is.na<<-`(ec50)
+              ec50 <- `is.na<-`(ec50)
               cat("Sample", speckName[i], "ec50 out of bounds \n", sep = " ")}
             
-            trans <<- inverseLogicleTransform(logicleTransform())
-            ec50 <<- trans(ec50)
-            sec50 <<- c(sec50, ec50)
+            trans <- inverseLogicleTransform(logicleTransform())
+            ec50 <- trans(ec50)
+            sec50 <- c(sec50, ec50)
             
-            Y <<- list(speck$speckPositive)
-            rawY <<- c(rawY, Y)
-            rawIndex <<- c(rawIndex, speckName[[i]])
+            Y <- list(speck$speckPositive)
+            rawY <- c(rawY, Y)
+            rawIndex <- c(rawIndex, speckName[[i]])
             
             
             png(filename = paste0(resultDir, '/ec50_curves/', speckName[[i]],'.png'))
-            plot(curve_fit, main = speckName[[i]], xlim = c(0,5), ylim = c(0,1))
+            # plot(curve_fit, main = speckName[[i]])
+            plot(curve_fit, main = speckName[[i]], xlim = c(0,4), ylim = c(0,1))
             dev.off()
             
             
@@ -233,45 +235,45 @@ server <- function(input, output, session) {
         
         
       } else {
-        ec50 <<- NA
-        sec50 <<- c(sec50, ec50)
-        minimum <<- c(minimum, NA)
-        height <<- c(height, NA)
-        slope <<- c(slope, NA)
-        midpoint <<- c(midpoint, NA)
-        residual_std_err <<- c(residual_std_err, NA)
-        loglik <<- c(loglik, NA)
-        aic <<- c(aic, NA)
-        bic <<- c(bic, NA)
+        ec50 <- NA
+        sec50 <- c(sec50, ec50)
+        minimum <- c(minimum, NA)
+        height <- c(height, NA)
+        slope <- c(slope, NA)
+        midpoint <- c(midpoint, NA)
+        residual_std_err <- c(residual_std_err, NA)
+        loglik <- c(loglik, NA)
+        aic <- c(aic, NA)
+        bic <- c(bic, NA)
         print(paste0("sample ", speckName[i], " unable to calculate ec50 \n"))
       }
     }
     
     
     # ASC50 calculation (1 - ratio of sample ec50 vs WT)
-    speck50 <<- 1 - (sec50/sec50[gatingControl])
+    speck50 <- 1 - (sec50/sec50[gatingControl])
     
     
     # Filter out samples with too low of a speck positive population
     # Found that ec50 calculation on these samples was inaccurate due to small
     # y range of speck proportion
     
-    totalSpeck <<- c()
+    totalSpeck <- c()
     for(i in 1:length(speckName)){
-      speckpct <<- length(speckPosRaw[[i]]) / length(speckAll[[i]]) * 100
-      totalSpeck <<- c(totalSpeck, speckpct)
+      speckpct <- length(speckPosRaw[[i]]) / length(speckAll[[i]]) * 100
+      totalSpeck <- c(totalSpeck, speckpct)
       if(speckpct < 0 | is.na(speckpct)){ #Changed to zero to include low speck populations for now
         cat("Sample ", speckName[i], " speckpos is too low: ",
             speckpct, "% \n",
             sep = "")
-        sec50[i] = `is.na<<-`(sec50[i])
-        speck50[i] = `is.na<<-`(speck50[i])
+        sec50[i] = `is.na<-`(sec50[i])
+        speck50[i] = `is.na<-`(speck50[i])
       }
     }
     
     
     
-    results <<- data.frame(well = speckName, 
+    results <- data.frame(well = speckName, 
                           asc50 = speck50,
                           ec50 = sec50,
                           Speck_Total = totalSpeck,
@@ -297,17 +299,18 @@ server <- function(input, output, session) {
            scale = 4,
            plot = ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
     
-    rawX <<- speck$NLRP3
-    trans <<- inverseLogicleTransform(logicleTransform())
-    rawX <<- trans(rawX)
-    rawIndex <<- c("NLRP3", rawIndex)
-    rawCurveList <<- list(rawX, rawY)
-    rawCurves <<- as.data.frame(rawCurveList)
-    colnames(rawCurves) <<- rawIndex
+    rawX <- speck$NLRP3
+    trans <- inverseLogicleTransform(logicleTransform())
+    rawX <- trans(rawX)
+    rawIndex <- c("NLRP3", rawIndex)
+    rawCurveList <- list(rawX, rawY)
+    rawCurves <- as.data.frame(rawCurveList)
+    colnames(rawCurves) <- rawIndex
     
     write_xlsx(rawCurves, path = paste0(resultDir, '/raw_curves', '.xlsx'))
     write_xlsx(results, path = paste0(resultDir,"/raw_data.xlsx"))
-    return("Done!")
+    print(paste0(path, ' Done!'))
+    
   })
 
 }

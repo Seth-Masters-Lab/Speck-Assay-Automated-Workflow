@@ -5,7 +5,7 @@ source('Functions.R')
 
 path <- 'Data/Testing_NLRP3_library_12_sample_1A-H'
 
-fs <- fcsImportLogicle(path, T, T)
+fs <- fcsImportLogicle(path, T, F)
 
 # Create an empty gating set
 gs <- GatingSet(fs)
