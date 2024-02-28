@@ -63,11 +63,19 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$startBtn, {
-    print(input$logscales)
     path <<- input$data
     fs <<- fcsImportLogicle(path, T, F)
     
-    ##################### USE MATCH FUNCTION FOR CHANNEL LOG INPUT ####################
+    channelList <- selectedData()
+    channelDF <- data.frame(Channels = unlist(channelList), row.names = NULL)
+    newList <- as.list.data.frame(channelDF)
+    
+    trans <- logicleTransform()
+    selectedChannels <- match(input$logscales, newList$Channels)
+    cat(selectedChannels)
+    transformat <- transformList(colnames(fs[,selectedChannels]), trans)
+    fs <- transform(fs, transformat)
+    
     
     # Create an empty gating set
     gs <<- GatingSet(fs)
