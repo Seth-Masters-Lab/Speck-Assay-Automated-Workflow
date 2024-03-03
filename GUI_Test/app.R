@@ -73,7 +73,6 @@ server <- function(input, output, session) {
     if(!is.null(input$logscales)){
       trans <- logicleTransform()
       selectedChannels <- match(input$logscales, newList$Channels)
-      cat(selectedChannels)
       transformat <- transformList(colnames(fs[,selectedChannels]), trans)
       fs <- transform(fs, transformat)}
     
