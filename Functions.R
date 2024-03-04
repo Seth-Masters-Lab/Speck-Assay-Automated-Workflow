@@ -48,6 +48,7 @@ fcsImportLogicle <- function(path, clean, logTrans){
     trans <- logicleTransform()
     transformat <- transformList(colnames(fs[,lower:upper]), trans)
     fs <- transform(fs, transformat)
+    
   }
   resultDir <<- sub("Data", 'Results', path)
   dir.create(resultDir, recursive = T)
