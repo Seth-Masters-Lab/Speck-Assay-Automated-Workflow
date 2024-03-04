@@ -20,7 +20,7 @@ ui <- fluidPage(
     ),
     mainPanel(
       actionButton(inputId = 'startBtn', label = "Start AutoSpeck"),
-      textOutput('done')
+      plotOutput("plot")
     )
   )
 )
@@ -297,6 +297,7 @@ server <- function(input, output, session) {
            scale = 4,
            plot = ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
     
+    output$plot <- renderPlot(ggplot(results, aes(well, speck50)) + geom_col() + labs(title = path))
     rawX <- speck$NLRP3
     trans <- inverseLogicleTransform(logicleTransform())
     rawX <- trans(rawX)
