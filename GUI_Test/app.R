@@ -17,9 +17,6 @@ ui <- fluidPage(
       selectInput(inputId = 'NLRP3Channel', label = "Please select your NLRP3 channel", choices = NULL),
       selectInput(inputId = 'gatingControl', 
                   label = "Please select a sample to be used as a control for gating and ASC50 calculation", choices = NULL),
-      uiOutput("logscales")
-      
-      
     ),
     mainPanel(
       actionButton(inputId = 'startBtn', label = "Start AutoSpeck"),
@@ -52,14 +49,7 @@ server <- function(input, output, session) {
     updateSelectInput(session, 'ascChannel', choices = channelDF)
     updateSelectInput(session, 'NLRP3Channel', choices = channelDF)
     updateSelectInput(session, 'gatingControl', choices = list.files(path = input$data, pattern = "\\.fcs$", ignore.case = TRUE))
-    output$logscales <- renderUI({
-      req(channelDF)
-      checkboxGroupInput("logscales", label = "Please select channels to convert to log values:", choices = newList$Channels)
-    
-  })
-  
-    
-    
+
   })
   
   observeEvent(input$startBtn, {
@@ -70,11 +60,20 @@ server <- function(input, output, session) {
     channelDF <- data.frame(Channels = unlist(channelList), row.names = NULL)
     newList <- as.list.data.frame(channelDF)
     
-    if(!is.null(input$logscales)){
-      trans <- logicleTransform()
-      selectedChannels <- match(input$logscales, newList$Channels)
-      transformat <- transformList(colnames(fs[,selectedChannels]), trans)
-      fs <- transform(fs, transformat)}
+
+    trans <- logicleTransform()
+    
+    asc_channels <- gsub('.{1}$','', input$ascChannel)
+    nlrp3_channels <- gsub('.{1}$','', input$NLRP3Channel)
+    selectedChannels <- c(asc_channels, nlrp3_channels)
+    
+    select <- c()
+    for(i in selectedChannels){
+      select <- c(select, grep(pattern = i, newList$Channels))
+    }
+    
+    transformat <- transformList(colnames(fs[,select]), trans)
+    fs <- transform(fs, transformat)
     
     
     # Create an empty gating set
