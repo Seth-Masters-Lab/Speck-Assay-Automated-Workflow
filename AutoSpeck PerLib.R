@@ -39,7 +39,7 @@ for(i in 1:length(FileNames)){
   # Debris Gate
   gate1dc(gatingSet = gs, parentPop = 'root', xchannel = 'FSC.A', name = 'debris',
           plot = F, positive = T, range = c(0.1e5,1e5), smoothing = 1.5, peaks = NULL,
-          save = T, controlSample = 1)
+          save = T, controlSample = gatingControl)
   
   #Single cell gates
   gate2dc(gs, 'debris', xchannel = 'SSC.W', ychannel = 'SSC.A', quantile = 0.95,
