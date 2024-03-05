@@ -17,9 +17,9 @@ ui <- fluidPage(
       selectInput(inputId = 'NLRP3Channel', label = "Please select your NLRP3 channel", choices = NULL),
       selectInput(inputId = 'gatingControl', 
                   label = "Please select a sample to be used as a control for gating and ASC50 calculation", choices = NULL),
+      actionButton(inputId = 'startBtn', label = "Start AutoSpeck"),
     ),
     mainPanel(
-      actionButton(inputId = 'startBtn', label = "Start AutoSpeck"),
       plotOutput("plot")
     )
   )
