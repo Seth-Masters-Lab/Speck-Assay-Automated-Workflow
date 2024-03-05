@@ -201,7 +201,7 @@ server <- function(input, output, session) {
             
             png(filename = paste0(resultDir, '/ec50_curves/', speckName[[i]],'.png'))
             # plot(curve_fit, main = speckName[[i]])
-            plot(curve_fit, main = speckName[[i]], xlim = c(0,4), ylim = c(0,1))
+            plot(curve_fit, main = speckName[[i]], xlim = c(0,5), ylim = c(0,1))
             dev.off()
             
             
