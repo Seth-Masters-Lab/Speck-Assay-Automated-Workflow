@@ -217,6 +217,8 @@ server <- function(input, output, session) {
             # message("ERROR:")
             # message(error_message)
             
+            # Printing error messages caused the shiny app to crash
+            
             ec50 <<- NA
             sec50 <<- c(sec50, ec50)
             minimum <<- c(minimum, NA)
