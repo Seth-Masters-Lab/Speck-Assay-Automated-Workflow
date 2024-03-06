@@ -34,7 +34,7 @@ fcsImportLogicle <- function(path, clean, logTrans){
   # Data Cleaning
   if(clean == T){
     fs <- flow_auto_qc(fs, mini_report = F, html_report = F, fcs_QC = F, folder_results = F)
-    }
+  }
   
   # Log transformation
   if(logTrans == T){
@@ -48,7 +48,6 @@ fcsImportLogicle <- function(path, clean, logTrans){
     trans <- logicleTransform()
     transformat <- transformList(colnames(fs[,lower:upper]), trans)
     fs <- transform(fs, transformat)
-    
   }
   resultDir <<- sub("Data", 'Results', path)
   dir.create(resultDir, recursive = T)
@@ -139,7 +138,7 @@ gate2d <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, plo
   recompute(gatingSet)
   if(plot == T){
     print(ggcyto(gatingSet, subset = parentPop, aes(x = {{xchannel}}, y = {{ychannel}})) + geom_hex(bins = 100) +
-      geom_gate(name))
+            geom_gate(name))
   }
   if(save == T){
     ggsave(filename = paste0(name, '.png'), device = 'png',
@@ -163,11 +162,11 @@ gate2dc <- function(gatingSet, parentPop, xchannel, ychannel, quantile, name, pl
   }
   fr <- gh_pop_get_data(gs[[controlSample]], parentPop, returnType = 'flowFrame')
   gate <- openCyto::gate_flowclust_2d(fr,
-                                     xChannel = xchannel,
-                                     yChannel = ychannel,
-                                     K = kpop,
-                                     target = target,
-                                     quantile = quantile)
+                                      xChannel = xchannel,
+                                      yChannel = ychannel,
+                                      K = kpop,
+                                      target = target,
+                                      quantile = quantile)
   gs_pop_add(gatingSet, gate, parent = parentPop, name = name)
   recompute(gatingSet)
   if(plot == T){
@@ -340,3 +339,4 @@ stepBin <- function(index, stepLen, speckAll, speckPosRaw, speckNegRaw){
 gm_mean = function(x, na.rm=TRUE){
   exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
 }
+
