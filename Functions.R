@@ -310,7 +310,7 @@ exportSingleCell <- function(speckPosGate, speckNegGate, ascGate, facsChannel){
 
 stepBin <- function(index, stepLen, speckAll, speckPosRaw, speckNegRaw){
   
-  plotRange <- c(0, 5)
+  plotRange <- c(0, 4)
   binStart <- plotRange[1]
   binSize <- (plotRange[2] - plotRange[1]) / 3
   bin <<- c()
