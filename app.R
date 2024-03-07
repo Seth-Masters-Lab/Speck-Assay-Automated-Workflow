@@ -12,7 +12,6 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput(inputId = 'data', label = "Select Dataset", choices = files),
-      actionButton(inputId = 'confirmBtn', label = "Confirm Selection"),
       selectInput(inputId = 'ascChannel', label = "Please select your ASC channel", choices = NULL),
       selectInput(inputId = 'NLRP3Channel', label = "Please select your NLRP3 channel", choices = NULL),
       selectInput(inputId = 'gatingControl', 
@@ -26,7 +25,7 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  selectedData <- eventReactive(input$confirmBtn, {
+  selectedData <- eventReactive(input$data, {
     fcsfiles <- list.files(path = input$data, pattern = "\\.fcs$", ignore.case = TRUE)
     
     if (length(fcsfiles) > 0) {
