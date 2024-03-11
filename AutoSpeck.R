@@ -3,7 +3,7 @@ rm(list=ls())
 
 source('Functions.R')
 
-path <- 'Data/20230622_Nlrp3 library 12/P2'
+path <- 'Data/20230621_Nlrp3 library 10/P1'
 
 fs <- fcsImportLogicle(path, T, T)
 
